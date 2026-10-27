@@ -45,7 +45,7 @@ server.js          Node-Server: liefert die Seite aus, /api/lookup (Wörterbuch)
 public/index.html  Oberfläche
 public/styles.css  Schwarzes Design
 public/app.js      Logik im Browser (inkl. Basis-Modus)
-Index.html         Die ganze Seite als einzelne Datei – per Doppelklick öffnen, läuft im Basis-Modus ohne Server
+index.html         Die ganze Seite als einzelne Datei – per Doppelklick öffnen, läuft im Basis-Modus ohne Server
 ```
 
 ## Weitere Sprachen hinzufügen
