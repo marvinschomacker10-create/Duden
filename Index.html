@@ -1,0 +1,1604 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#000000">
+  <title>Wortwerk</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Georgia,serif' font-size='20' font-weight='700' fill='%23f2b84b'%3EW%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #000;
+  --surface: #0c0c0c;
+  --surface-2: #151515;
+  --surface-3: #1c1c1c;
+  --border: #232323;
+  --border-strong: #353535;
+  --text: #f3f2ee;
+  --muted: #8d8c88;
+  --faint: #5d5c59;
+  --accent: #f2b84b;
+  --accent-ink: #120d02;
+  --accent-soft: rgba(242, 184, 75, 0.12);
+  --danger: #ff7a6b;
+
+  --reg-neutral: #b8b7b2;
+  --reg-gehoben: #c4a7ff;
+  --reg-formell: #7fb6ff;
+  --reg-umgangssprachlich: #7ddc9a;
+  --reg-slang: #ff8fc7;
+  --reg-einfach: #f2b84b;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --sidebar: 92px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.icon {
+  width: 20px; height: 20px; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.muted { color: var(--muted); }
+
+/* ---------- Layout ---------- */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar) 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky; top: 0;
+  height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 28px;
+  padding: 22px 0 20px;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.logo {
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--serif);
+  font-weight: 700; font-size: 24px;
+  text-decoration: none;
+}
+
+.tabs { display: flex; flex-direction: column; gap: 6px; width: 100%; padding: 0 10px; }
+
+.tab {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 4px 10px;
+  border: 0; border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em;
+  transition: background 0.15s, color 0.15s;
+}
+.tab .icon { width: 22px; height: 22px; }
+.tab:hover { color: var(--text); background: var(--surface-2); }
+.tab[aria-selected="true"] { color: var(--text); background: var(--surface-3); }
+.tab[aria-selected="true"]::before {
+  content: ""; position: absolute; left: -10px; top: 14px; bottom: 14px;
+  width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
+}
+
+.engine {
+  margin-top: auto;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 0 8px;
+  text-align: center;
+  font-size: 10.5px; color: var(--muted); line-height: 1.3;
+}
+.engine-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.engine.is-ai .engine-dot { background: #6be38f; box-shadow: 0 0 10px rgba(107, 227, 143, 0.6); }
+.engine.is-basic .engine-dot { background: var(--accent); }
+
+.main { min-width: 0; padding: 0 clamp(16px, 4vw, 48px) 64px; }
+
+/* ---------- Topbar ---------- */
+
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap;
+  padding: 22px 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.brand-name { font-family: var(--serif); font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.brand-sub { color: var(--muted); font-size: 14px; }
+
+.lang-picker {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.lang-select { position: relative; display: block; }
+.lang-select select {
+  appearance: none;
+  min-width: 118px;
+  padding: 8px 32px 8px 16px;
+  border: 0; border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+}
+.lang-select::after {
+  content: ""; position: absolute; right: 14px; top: 50%;
+  width: 7px; height: 7px; margin-top: -5px;
+  border-right: 1.6px solid var(--muted); border-bottom: 1.6px solid var(--muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.lang-select select:hover { background: var(--surface-3); }
+.lang-select option { background: #111; color: var(--text); }
+.lang-select option:disabled { color: var(--faint); }
+
+.icon-btn {
+  display: inline-grid; place-items: center;
+  width: 36px; height: 36px;
+  border: 0; border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  transition: background 0.15s, color 0.15s, transform 0.25s;
+}
+.icon-btn:hover { background: var(--surface-3); color: var(--text); }
+.icon-btn .icon { width: 18px; height: 18px; }
+.swap-btn:active, .pane-swap:active { transform: rotate(180deg); }
+
+/* ---------- Sprachstil ---------- */
+
+.register-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px;
+  padding: 16px 0;
+}
+.register-title {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--faint);
+}
+.registers { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.register {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13.5px; font-weight: 500;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.register::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--reg-color, var(--muted));
+}
+.register:hover { color: var(--text); border-color: var(--border-strong); }
+.register[aria-checked="true"] {
+  color: var(--text);
+  border-color: var(--reg-color);
+  background: color-mix(in srgb, var(--reg-color) 12%, transparent);
+}
+.register-hint { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 13px; }
+.register-hint.warn { color: var(--accent); }
+
+[data-register="neutral"] { --reg-color: var(--reg-neutral); }
+[data-register="gehoben"] { --reg-color: var(--reg-gehoben); }
+[data-register="formell"] { --reg-color: var(--reg-formell); }
+[data-register="umgangssprachlich"] { --reg-color: var(--reg-umgangssprachlich); }
+[data-register="slang"] { --reg-color: var(--reg-slang); }
+[data-register="einfach"] { --reg-color: var(--reg-einfach); }
+
+/* ---------- Wörterbuch ---------- */
+
+.view { padding-top: 8px; }
+#view-dictionary { max-width: 920px; }
+
+.search {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px 8px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: var(--surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.search-icon { color: var(--muted); }
+.search input {
+  flex: 1; min-width: 0;
+  padding: 10px 0;
+  border: 0; outline: 0;
+  background: transparent;
+  font-size: 18px;
+}
+.search input::placeholder { color: var(--faint); }
+.search input::-webkit-search-cancel-button { filter: invert(1) brightness(0.6); }
+
+.btn-primary {
+  padding: 11px 20px;
+  border: 0; border-radius: 11px;
+  background: var(--accent); color: var(--accent-ink);
+  font-weight: 600;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+
+.btn-ghost {
+  padding: 7px 14px;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  background: transparent; color: var(--text);
+  font-size: 13.5px;
+}
+.btn-ghost:hover { background: var(--surface-3); }
+
+#dictionary-result { margin-top: 28px; }
+
+.welcome h2 {
+  margin: 0 0 6px;
+  font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: -0.01em;
+}
+.welcome p { margin: 0 0 22px; color: var(--muted); max-width: 60ch; }
+.chip-group { margin-bottom: 22px; }
+.chip-group h3 {
+  margin: 0 0 10px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 6px 13px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Eintrag */
+.entry-in { animation: rise 0.25s ease-out; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+
+.entry-notice {
+  margin: 0 0 16px; padding: 10px 14px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--muted); font-size: 14px;
+}
+.entry-notice strong { color: var(--text); }
+
+.entry-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.headword {
+  margin: 0;
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(36px, 6vw, 54px); line-height: 1.1; letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.entry-pos { margin: 6px 0 0; color: var(--muted); font-size: 16px; }
+.usage-tag {
+  display: inline-block; margin-left: 8px; padding: 1px 9px;
+  border-radius: 999px; background: var(--surface-3); color: var(--text);
+  font-size: 12.5px; vertical-align: 2px;
+}
+
+.facts {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  margin: 24px 0 8px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--border);
+  overflow: hidden;
+}
+.fact { padding: 13px 16px; background: var(--surface); }
+.fact dt {
+  margin-bottom: 3px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--faint);
+}
+.fact dd { margin: 0; overflow-wrap: anywhere; }
+.freq { display: inline-flex; gap: 3px; vertical-align: -1px; }
+.freq i { width: 14px; height: 10px; border-radius: 2px; background: var(--surface-3); }
+.freq i.on { background: var(--accent); }
+
+.section { margin-top: 34px; }
+.section-title {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 14px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+
+.style-box {
+  margin-top: 26px; padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--reg-color) 45%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--reg-color) 8%, var(--surface));
+}
+.style-box-label { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.style-box-label b { color: var(--reg-color); font-weight: 600; }
+.style-box-terms { margin: 0; font-family: var(--serif); font-size: 26px; font-weight: 700; line-height: 1.3; }
+.style-box-note { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+.translations { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.translation {
+  padding: 12px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: border-color 0.15s, opacity 0.15s;
+}
+.translation.is-match { border-color: var(--reg-color); background: color-mix(in srgb, var(--reg-color) 8%, var(--surface)); }
+.translations.has-match .translation:not(.is-match) { opacity: 0.6; }
+.translation-term { font-size: 17px; font-weight: 600; }
+.translation-note { margin-top: 3px; color: var(--muted); font-size: 13.5px; }
+.reg-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px;
+  font-size: 12px; color: var(--reg-color);
+}
+.reg-tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--reg-color); }
+
+.meanings { margin: 0; padding: 0; list-style: none; counter-reset: m; }
+.meaning { position: relative; padding: 0 0 20px 44px; counter-increment: m; }
+.meaning::before {
+  content: counter(m);
+  position: absolute; left: 0; top: 0;
+  display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-3); color: var(--accent);
+  font-size: 13px; font-weight: 700;
+}
+.meaning-def { margin: 2px 0 4px; font-size: 16.5px; }
+.meaning-tr { margin: 0; color: var(--accent); font-weight: 500; }
+.example {
+  margin: 10px 0 0; padding: 10px 14px;
+  border-left: 2px solid var(--border-strong);
+  background: var(--surface);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.example-src { margin: 0; font-style: italic; }
+.example-tr { margin: 2px 0 0; color: var(--muted); }
+
+.idioms { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.idiom { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 10px 0; border-bottom: 1px dashed var(--border); }
+.idiom:last-child { border-bottom: 0; }
+.idiom-phrase { font-weight: 600; }
+.idiom-tr { color: var(--muted); }
+
+.word-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.sub-label { margin: 0 0 8px; color: var(--faint); font-size: 13px; }
+.etymology { margin: 0; color: var(--text); max-width: 70ch; }
+
+.definition-groups { display: grid; gap: 16px; }
+.definition-group h4 { margin: 0 0 6px; color: var(--accent); font-size: 14px; font-weight: 600; }
+.definition-group ol { margin: 0; padding-left: 20px; }
+.definition-group li { margin-bottom: 6px; }
+.definition-group li span { display: block; color: var(--muted); font-style: italic; }
+
+.entry-foot { margin-top: 36px; color: var(--faint); font-size: 12.5px; }
+
+/* Laden & Fehler */
+.skeleton { display: grid; gap: 14px; }
+.sk { border-radius: 8px; background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2)); background-size: 200% 100%; animation: shimmer 1.2s infinite linear; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.message-box {
+  padding: 22px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface);
+}
+.message-box h3 { margin: 0 0 6px; font-size: 18px; }
+.message-box p { margin: 0 0 14px; color: var(--muted); }
+.message-box.error { border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.message-box.error h3 { color: var(--danger); }
+
+/* ---------- Übersetzer ---------- */
+
+.panes {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--border); border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.pane { display: flex; flex-direction: column; min-width: 0; min-height: 380px; }
+.pane-out { background: #080808; border-left: 1px solid var(--border); }
+.pane-swap {
+  align-self: center;
+  margin: 0 -18px; z-index: 1;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+}
+.pane-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 56px; padding: 10px 14px 10px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.pane-lang { font-weight: 600; }
+.pane-out .pane-head { padding-left: 30px; }
+
+#source-text, .output {
+  flex: 1;
+  width: 100%;
+  min-height: 260px;
+  padding: 20px 22px;
+  border: 0; outline: 0; resize: none;
+  background: transparent;
+  font-size: 20px; line-height: 1.5;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.pane-out .output { padding-left: 30px; }
+#source-text::placeholder { color: var(--faint); }
+.output:empty::before { content: attr(data-placeholder); color: var(--faint); }
+.output.is-stale { color: var(--muted); }
+.output.is-error { color: var(--danger); font-size: 15px; }
+
+.pane-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 52px; padding: 6px 12px 6px 22px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.pane-out .pane-foot { padding-left: 30px; }
+.pane-actions { display: flex; gap: 2px; }
+
+.status { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }
+.status.is-busy::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 0.9s infinite ease-in-out;
+}
+@keyframes pulse { 50% { opacity: 0.25; transform: scale(0.7); } }
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 20;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
+  padding: 11px 18px;
+  border: 1px solid var(--border-strong); border-radius: 12px;
+  background: var(--surface-3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+/* ---------- Mobil ---------- */
+
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed; top: auto; bottom: 0; left: 0; right: 0; z-index: 10;
+    height: auto;
+    flex-direction: row; justify-content: center;
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+    border-right: 0; border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(12px);
+  }
+  .logo, .engine { display: none; }
+  .tabs { flex-direction: row; justify-content: center; gap: 8px; padding: 0; }
+  .tab { flex: 1; max-width: 160px; padding: 8px 4px 6px; }
+  .tab[aria-selected="true"]::before { left: 30%; right: 30%; top: -6px; bottom: auto; width: auto; height: 3px; border-radius: 0 0 3px 3px; }
+  .main { padding: 0 16px 110px; }
+  .topbar { flex-direction: column; align-items: stretch; gap: 12px; padding-top: 14px; }
+  .brand-sub { display: none; }
+  .lang-picker { width: 100%; }
+  .lang-select { flex: 1; min-width: 0; }
+  .lang-select select { width: 100%; min-width: 0; padding-left: 14px; }
+  .registers {
+    flex-wrap: nowrap; overflow-x: auto;
+    margin: 0 -16px; padding: 2px 16px;
+    scrollbar-width: none;
+  }
+  .registers::-webkit-scrollbar { display: none; }
+  .register { flex: none; }
+  .search input { font-size: 16px; }
+  .btn-primary { padding: 10px 14px; }
+  .panes { grid-template-columns: 1fr; }
+  .pane { min-height: 0; }
+  .pane-out { border-left: 0; border-top: 1px solid var(--border); }
+  #source-text, .output { min-height: 170px; font-size: 18px; }
+  .pane-swap { margin: -18px auto; transform: rotate(90deg); }
+  .pane-swap:active { transform: rotate(270deg); }
+  .pane-out .pane-head, .pane-out .output, .pane-out .pane-foot { padding-left: 22px; }
+  .pane-out .pane-head { padding-top: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 0 6.5 24H20v-5"/><path d="M8 7h8M8 11h6"/></symbol>
+    <symbol id="i-translate" viewBox="0 0 24 24"><path d="M3 5h10M8 3v2M5 9c1.5 3 4 5 7 6"/><path d="M11 5c-.8 4.5-3.3 8-7 10"/><path d="m13 21 4.5-10 4.5 10M14.5 18h6"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+    <symbol id="i-speak" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  </svg>
+
+  <div class="app">
+    <aside class="sidebar" aria-label="Bereiche">
+      <a class="logo" href="#" aria-label="Wortwerk Startseite">W</a>
+      <nav class="tabs" role="tablist" aria-orientation="vertical">
+        <button class="tab" role="tab" id="tab-dictionary" data-view="dictionary" aria-controls="view-dictionary">
+          <svg class="icon"><use href="#i-book"/></svg>
+          <span>Wörterbuch</span>
+        </button>
+        <button class="tab" role="tab" id="tab-translator" data-view="translator" aria-controls="view-translator">
+          <svg class="icon"><use href="#i-translate"/></svg>
+          <span>Übersetzer</span>
+        </button>
+      </nav>
+      <div class="engine" id="engine" title="">
+        <span class="engine-dot"></span>
+        <span class="engine-label" id="engine-label">…</span>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-name">Wortwerk</span>
+          <span class="brand-sub" id="brand-sub">Wörterbuch</span>
+        </div>
+        <div class="lang-picker" aria-label="Sprachrichtung">
+          <label class="lang-select">
+            <span class="sr-only">Ausgangssprache</span>
+            <select id="lang-from"></select>
+          </label>
+          <button class="icon-btn swap-btn" id="lang-swap" type="button" aria-label="Sprachen tauschen" title="Sprachen tauschen">
+            <svg class="icon"><use href="#i-swap"/></svg>
+          </button>
+          <label class="lang-select">
+            <span class="sr-only">Zielsprache</span>
+            <select id="lang-to"></select>
+          </label>
+        </div>
+      </header>
+
+      <div class="register-bar">
+        <span class="register-title">Sprachstil</span>
+        <div class="registers" id="registers" role="radiogroup" aria-label="Sprachstil"></div>
+        <p class="register-hint" id="register-hint"></p>
+      </div>
+
+      <!-- Wörterbuch -->
+      <section class="view" id="view-dictionary" role="tabpanel" aria-labelledby="tab-dictionary">
+        <form class="search" id="search-form" autocomplete="off">
+          <svg class="icon search-icon"><use href="#i-search"/></svg>
+          <input id="search-input" type="search" maxlength="80" placeholder="Wort nachschlagen …" aria-label="Wort nachschlagen" spellcheck="false">
+          <button class="btn-primary" type="submit">Suchen</button>
+        </form>
+        <div id="dictionary-result" aria-live="polite"></div>
+      </section>
+
+      <!-- Übersetzer -->
+      <section class="view" id="view-translator" role="tabpanel" aria-labelledby="tab-translator" hidden>
+        <div class="panes">
+          <div class="pane">
+            <div class="pane-head">
+              <span class="pane-lang" id="pane-from"></span>
+              <button class="icon-btn" id="clear-btn" type="button" aria-label="Text löschen" title="Text löschen" hidden>
+                <svg class="icon"><use href="#i-x"/></svg>
+              </button>
+            </div>
+            <textarea id="source-text" maxlength="5000" placeholder="Text eingeben – die Übersetzung erscheint sofort." spellcheck="true"></textarea>
+            <div class="pane-foot">
+              <span class="muted" id="char-count">0 / 5000</span>
+            </div>
+          </div>
+
+          <button class="icon-btn pane-swap" id="pane-swap" type="button" aria-label="Richtung tauschen" title="Richtung tauschen">
+            <svg class="icon"><use href="#i-swap"/></svg>
+          </button>
+
+          <div class="pane pane-out">
+            <div class="pane-head">
+              <span class="pane-lang" id="pane-to"></span>
+              <span class="status" id="translate-status"></span>
+            </div>
+            <div class="output" id="target-text" aria-live="polite" data-placeholder="Übersetzung"></div>
+            <div class="pane-foot">
+              <span class="muted" id="register-badge"></span>
+              <div class="pane-actions">
+                <button class="icon-btn" id="speak-btn" type="button" aria-label="Vorlesen" title="Vorlesen">
+                  <svg class="icon"><use href="#i-speak"/></svg>
+                </button>
+                <button class="icon-btn" id="copy-btn" type="button" aria-label="Kopieren" title="Kopieren">
+                  <svg class="icon"><use href="#i-copy"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script>
+(() => {
+  "use strict";
+
+  // ---------------------------------------------------------------------------
+  // Konfiguration
+  // ---------------------------------------------------------------------------
+
+  const LANGUAGES = [
+    { code: "de", name: "Deutsch", speech: "de-DE", available: true },
+    { code: "en", name: "Englisch", speech: "en-GB", available: true },
+    { code: "fr", name: "Französisch", available: false },
+    { code: "es", name: "Spanisch", available: false },
+    { code: "it", name: "Italienisch", available: false },
+  ];
+  const LANG = Object.fromEntries(LANGUAGES.map((l) => [l.code, l]));
+  const AVAILABLE = LANGUAGES.filter((l) => l.available).map((l) => l.code);
+
+  const REGISTERS = [
+    { id: "neutral", label: "Standard", hint: "Neutrale Standardsprache – passt fast immer." },
+    { id: "gehoben", label: "Gehoben", hint: "Gewählte, literarische Ausdrucksweise." },
+    { id: "formell", label: "Formell", hint: "Höflich und sachlich – für Behörden, Kunden und Bewerbungen." },
+    { id: "umgangssprachlich", label: "Umgangssprachlich", hint: "Locker, wie im Gespräch unter Freunden." },
+    { id: "slang", label: "Slang", hint: "Sehr salopp, Jugendsprache." },
+    { id: "einfach", label: "Einfach", hint: "Kurze Sätze und einfache Wörter – ideal zum Lernen." },
+  ];
+  const REG = Object.fromEntries(REGISTERS.map((r) => [r.id, r]));
+
+  const SAMPLE_WORDS = {
+    de: ["Fernweh", "Gemütlichkeit", "Feierabend", "verschlimmbessern", "Kummerspeck", "Zeitgeist"],
+    en: ["serendipity", "awkward", "cosy", "procrastinate", "gist", "wholesome"],
+  };
+
+  const POS_DE = {
+    noun: "Substantiv", verb: "Verb", adjective: "Adjektiv", adverb: "Adverb",
+    pronoun: "Pronomen", preposition: "Präposition", conjunction: "Konjunktion",
+    interjection: "Interjektion", exclamation: "Ausruf",
+  };
+
+  const MAX_TEXT = 5000;
+
+  // ---------------------------------------------------------------------------
+  // Zustand
+  // ---------------------------------------------------------------------------
+
+  const store = {
+    get(key, fallback) {
+      try {
+        const value = localStorage.getItem("wortwerk." + key);
+        return value == null ? fallback : JSON.parse(value);
+      } catch {
+        return fallback;
+      }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem("wortwerk." + key, JSON.stringify(value));
+      } catch {
+        // Speicher nicht verfügbar – Einstellungen gelten dann nur für diese Sitzung
+      }
+    },
+  };
+
+  const savedFrom = store.get("from", "de");
+  const state = {
+    view: "dictionary",
+    from: AVAILABLE.includes(savedFrom) ? savedFrom : "de",
+    to: "en",
+    register: REG[store.get("register", "neutral")] ? store.get("register", "neutral") : "neutral",
+    ai: false,
+    statusKnown: false,
+    history: store.get("history", []),
+    current: null, // { entry, query, from, to }
+  };
+  state.to = otherLanguage(state.from);
+
+  const lookupCache = new Map();
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    tabs: document.querySelectorAll(".tab"),
+    views: { dictionary: $("view-dictionary"), translator: $("view-translator") },
+    brandSub: $("brand-sub"),
+    engine: $("engine"),
+    engineLabel: $("engine-label"),
+    from: $("lang-from"),
+    to: $("lang-to"),
+    swap: $("lang-swap"),
+    registers: $("registers"),
+    registerHint: $("register-hint"),
+    searchForm: $("search-form"),
+    searchInput: $("search-input"),
+    result: $("dictionary-result"),
+    source: $("source-text"),
+    target: $("target-text"),
+    paneFrom: $("pane-from"),
+    paneTo: $("pane-to"),
+    paneSwap: $("pane-swap"),
+    clear: $("clear-btn"),
+    charCount: $("char-count"),
+    status: $("translate-status"),
+    registerBadge: $("register-badge"),
+    copy: $("copy-btn"),
+    speak: $("speak-btn"),
+    toast: $("toast"),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Hilfsfunktionen
+  // ---------------------------------------------------------------------------
+
+  function otherLanguage(code) {
+    return AVAILABLE.find((c) => c !== code);
+  }
+
+  function h(tag, props, ...children) {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(props || {})) {
+      if (value == null || value === false) continue;
+      if (key === "class") node.className = value;
+      else if (key === "dataset") Object.assign(node.dataset, value);
+      else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+      else node.setAttribute(key, value === true ? "" : value);
+    }
+    for (const child of children.flat()) {
+      if (child == null || child === false || child === "") continue;
+      node.append(child instanceof Node ? child : String(child));
+    }
+    return node;
+  }
+
+  function icon(name) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "icon");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttribute("href", "#i-" + name);
+    svg.append(use);
+    return svg;
+  }
+
+  let toastTimer;
+  function toast(message) {
+    el.toast.textContent = message;
+    el.toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (el.toast.hidden = true), 3200);
+  }
+
+  function speak(text, lang) {
+    if (!text) return;
+    if (!("speechSynthesis" in window)) {
+      toast("Vorlesen wird von diesem Browser nicht unterstützt.");
+      return;
+    }
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = LANG[lang].speech;
+    speechSynthesis.speak(utterance);
+  }
+
+  function decodeEntities(text) {
+    const area = document.createElement("textarea");
+    area.innerHTML = text;
+    return area.value;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Datenquellen: KI-Server oder kostenloser Basis-Modus
+  // ---------------------------------------------------------------------------
+
+  const ready = fetch("api/status")
+    .then((res) => (res.ok ? res.json() : { ai: false }))
+    .catch(() => ({ ai: false }))
+    .then((status) => {
+      state.ai = Boolean(status.ai);
+      state.statusKnown = true;
+      el.engine.title = status.model ? "Modell: " + status.model : "";
+      renderEngine();
+    });
+
+  async function errorFrom(res) {
+    let message = "Anfrage fehlgeschlagen (" + res.status + ").";
+    try {
+      message = (await res.json()).error || message;
+    } catch {
+      // keine JSON-Antwort
+    }
+    const error = new Error(message);
+    error.status = res.status;
+    return error;
+  }
+
+  // Ist der Key ungültig oder der KI-Modus aus, wechseln wir in den Basis-Modus.
+  function handleAiFailure(error) {
+    if (error.status !== 401 && error.status !== 503) return false;
+    state.ai = false;
+    renderEngine();
+    toast(error.message + " Wechsle in den Basis-Modus.");
+    return true;
+  }
+
+  async function lookup(word, from, to) {
+    await ready;
+    const key = [from, to, word.toLowerCase()].join("|");
+    if (lookupCache.has(key)) return lookupCache.get(key);
+
+    let entry;
+    if (state.ai) {
+      try {
+        const res = await fetch("api/lookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ word, from, to }),
+        });
+        if (!res.ok) throw await errorFrom(res);
+        entry = await res.json();
+      } catch (error) {
+        if (!handleAiFailure(error)) throw error;
+      }
+    }
+    if (!entry) entry = await basicLookup(word, from, to);
+
+    lookupCache.set(key, entry);
+    return entry;
+  }
+
+  async function translateStream(text, { from, to, register, signal, onChunk }) {
+    await ready;
+    if (state.ai) {
+      try {
+        const res = await fetch("api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, from, to, register }),
+          signal,
+        });
+        if (!res.ok) throw await errorFrom(res);
+        await readNdjson(res, onChunk);
+        return;
+      } catch (error) {
+        if (!handleAiFailure(error)) throw error;
+      }
+    }
+    await basicTranslate(text, { from, to, signal, onChunk });
+  }
+
+  async function readNdjson(res, onChunk) {
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += value;
+      let newline;
+      while ((newline = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, newline).trim();
+        buffer = buffer.slice(newline + 1);
+        if (!line) continue;
+        const message = JSON.parse(line);
+        if (message.error) throw new Error(message.error);
+        if (message.t) onChunk(message.t);
+      }
+    }
+  }
+
+  // --- Basis-Modus: MyMemory (Übersetzung) + Free Dictionary API (Englisch) ---
+
+  async function myMemory(text, from, to, signal) {
+    const url =
+      "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + from + "|" + to;
+    let res;
+    try {
+      res = await fetch(url, { signal });
+    } catch (error) {
+      if (error.name === "AbortError") throw error;
+      throw new Error("Der kostenlose Übersetzungsdienst ist gerade nicht erreichbar.");
+    }
+    if (!res.ok) throw new Error("Der kostenlose Übersetzungsdienst ist gerade nicht erreichbar.");
+    const data = await res.json();
+    if (Number(data.responseStatus) !== 200) {
+      throw new Error(data.responseDetails || "Die Übersetzung ist fehlgeschlagen.");
+    }
+    return data;
+  }
+
+  // MyMemory erlaubt nur ~500 Zeichen pro Anfrage – längere Texte satzweise aufteilen.
+  function chunkText(text, max = 450) {
+    const parts = text.match(/[^.!?\n]+[.!?]*\s*|\n+\s*/g) || [text];
+    const chunks = [];
+    let current = "";
+    for (const part of parts) {
+      if (current && (current + part).length > max) {
+        chunks.push(current);
+        current = "";
+      }
+      if (part.length > max) {
+        for (let i = 0; i < part.length; i += max) chunks.push(part.slice(i, i + max));
+      } else {
+        current += part;
+      }
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  }
+
+  async function basicTranslate(text, { from, to, signal, onChunk }) {
+    for (const chunk of chunkText(text)) {
+      const core = chunk.trim();
+      if (!core) {
+        onChunk(chunk);
+        continue;
+      }
+      const lead = chunk.match(/^\s*/)[0];
+      const trail = chunk.match(/\s*$/)[0];
+      const data = await myMemory(core, from, to, signal);
+      onChunk(lead + decodeEntities(data.responseData.translatedText).trim() + trail);
+    }
+  }
+
+  async function freeDictionary(word) {
+    if (!word || /\s/.test(word.trim())) return null;
+    try {
+      const res = await fetch(
+        "https://api.dictionaryapi.dev/api/v2/entries/en/" + encodeURIComponent(word.trim().toLowerCase()),
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!Array.isArray(data) || !data.length) return null;
+
+      const phonetic =
+        data.map((d) => d.phonetic || ((d.phonetics || []).find((p) => p.text) || {}).text).find(Boolean) || "";
+      const groups = [];
+      const synonyms = new Set();
+      const antonyms = new Set();
+      for (const item of data) {
+        for (const meaning of item.meanings || []) {
+          let group = groups.find((g) => g.pos === meaning.partOfSpeech);
+          if (!group) groups.push((group = { pos: meaning.partOfSpeech, defs: [] }));
+          for (const def of meaning.definitions || []) {
+            if (group.defs.length < 4) group.defs.push({ definition: def.definition, example: def.example || "" });
+            (def.synonyms || []).forEach((s) => synonyms.add(s));
+            (def.antonyms || []).forEach((s) => antonyms.add(s));
+          }
+          (meaning.synonyms || []).forEach((s) => synonyms.add(s));
+          (meaning.antonyms || []).forEach((s) => antonyms.add(s));
+        }
+      }
+      return {
+        word: data[0].word,
+        phonetic,
+        groups,
+        synonyms: [...synonyms].slice(0, 8),
+        antonyms: [...antonyms].slice(0, 6),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async function basicLookup(word, from, to) {
+    const data = await myMemory(word, from, to);
+    const main = decodeEntities(data.responseData.translatedText).trim();
+    // Weitere Treffer aus dem Übersetzungsspeicher, aber nur für genau dieses Wort
+    const exact = (data.matches || []).filter(
+      (m) => m.segment && m.segment.trim().toLowerCase() === word.toLowerCase(),
+    );
+    const seen = new Set([word.toLowerCase()]);
+    const terms = [];
+    for (const candidate of [main, ...exact.map((m) => m.translation)]) {
+      const term = decodeEntities(candidate || "").trim();
+      if (!term || term.length > 60 || seen.has(term.toLowerCase())) continue;
+      seen.add(term.toLowerCase());
+      terms.push(term);
+      if (terms.length >= 8) break;
+    }
+
+    const english = await freeDictionary(from === "en" ? word : terms[0]);
+    const fromEnglish = from === "en" && english;
+    const pos = fromEnglish ? english.groups.map((g) => POS_DE[g.pos] || g.pos).join(", ") : "";
+
+    return {
+      basic: true,
+      found: terms.length > 0 || Boolean(fromEnglish),
+      headword: fromEnglish ? english.word : word,
+      corrected_from: "",
+      syllables: "",
+      pronunciation: fromEnglish ? english.phonetic : "",
+      part_of_speech: pos,
+      grammar: "",
+      frequency: 0,
+      usage: "",
+      meanings: [],
+      translations: terms.map((term) => ({ term, register: "neutral", note: "" })),
+      idioms: [],
+      synonyms: fromEnglish ? english.synonyms : [],
+      antonyms: fromEnglish ? english.antonyms : [],
+      etymology: "",
+      suggestions: [],
+      english,
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Oberfläche: Navigation, Sprachen, Sprachstil
+  // ---------------------------------------------------------------------------
+
+  function setView(view, { focus = false } = {}) {
+    state.view = view;
+    el.tabs.forEach((tab) => {
+      const active = tab.dataset.view === view;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+    });
+    for (const [name, section] of Object.entries(el.views)) section.hidden = name !== view;
+    el.brandSub.textContent = view === "dictionary" ? "Wörterbuch" : "Echtzeit-Übersetzer";
+    const hash = view === "translator" ? "#uebersetzer" : "#woerterbuch";
+    if (location.hash !== hash) history.replaceState(null, "", hash);
+    renderRegisterHint();
+    if (focus) (view === "dictionary" ? el.searchInput : el.source).focus();
+  }
+
+  function renderLanguageSelects() {
+    for (const [select, value] of [[el.from, state.from], [el.to, state.to]]) {
+      select.replaceChildren(
+        ...LANGUAGES.map((lang) =>
+          h("option", { value: lang.code, disabled: !lang.available }, lang.available ? lang.name : lang.name + " (bald)"),
+        ),
+      );
+      select.value = value;
+    }
+    el.paneFrom.textContent = LANG[state.from].name;
+    el.paneTo.textContent = LANG[state.to].name;
+    el.searchInput.placeholder =
+      state.from === "de" ? "Deutsches Wort nachschlagen …" : "Englisches Wort nachschlagen …";
+    el.source.lang = state.from;
+    el.target.lang = state.to;
+  }
+
+  function setLanguages(from, to) {
+    if (from === to) to = otherLanguage(from);
+    const changed = from !== state.from || to !== state.to;
+    state.from = from;
+    state.to = to;
+    store.set("from", from);
+    renderLanguageSelects();
+    if (!changed) return;
+    // Ein Eintrag gehört zu einer Sprachrichtung – nach dem Wechsel zur Startansicht.
+    state.current = null;
+    renderWelcome();
+    scheduleTranslation(0);
+  }
+
+  function swapLanguages() {
+    const output = el.target.classList.contains("is-error") ? "" : el.target.textContent;
+    setLanguages(state.to, state.from);
+    if (state.view === "translator" && output) {
+      el.source.value = output.slice(0, MAX_TEXT);
+      onSourceInput(0);
+    }
+  }
+
+  function renderRegisters() {
+    el.registers.replaceChildren(
+      ...REGISTERS.map((reg) =>
+        h(
+          "button",
+          {
+            type: "button",
+            class: "register",
+            role: "radio",
+            "aria-checked": String(reg.id === state.register),
+            tabindex: reg.id === state.register ? "0" : "-1",
+            dataset: { register: reg.id },
+            title: reg.hint,
+            onclick: () => setRegister(reg.id),
+          },
+          reg.label,
+        ),
+      ),
+    );
+    renderRegisterHint();
+  }
+
+  function setRegister(id) {
+    if (id === state.register) return;
+    state.register = id;
+    store.set("register", id);
+    renderRegisters();
+    el.registers.querySelector('[aria-checked="true"]').focus();
+    if (state.current) renderEntry(state.current, { animate: false });
+    if (state.ai) scheduleTranslation(0);
+  }
+
+  function renderRegisterHint() {
+    const reg = REG[state.register];
+    let hint = reg.hint;
+    let warn = false;
+    if (state.statusKnown && !state.ai) {
+      hint = "Basis-Modus: Sprachstile benötigen den KI-Modus (Server mit ANTHROPIC_API_KEY). Bis dahin wird neutral übersetzt.";
+      warn = true;
+    } else if (state.view === "dictionary") {
+      hint += " Im Wörterbuch werden passende Übersetzungen hervorgehoben.";
+    }
+    el.registerHint.textContent = hint;
+    el.registerHint.classList.toggle("warn", warn);
+    el.registerBadge.textContent = "Stil: " + (state.statusKnown && !state.ai ? "Standard" : reg.label);
+  }
+
+  function renderEngine() {
+    el.engine.classList.toggle("is-ai", state.ai);
+    el.engine.classList.toggle("is-basic", state.statusKnown && !state.ai);
+    el.engineLabel.textContent = !state.statusKnown ? "…" : state.ai ? "KI-Modus" : "Basis-Modus";
+    renderRegisterHint();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Wörterbuch
+  // ---------------------------------------------------------------------------
+
+  function renderWelcome() {
+    const recent = state.history.filter((item) => item.from === state.from).slice(0, 8);
+    const chips = (words) =>
+      h("div", { class: "chips" }, words.map((w) => h("button", { type: "button", class: "chip", onclick: () => search(w) }, w)));
+
+    el.result.replaceChildren(
+      h(
+        "div",
+        { class: "welcome" },
+        h("h2", null, state.from === "de" ? "Deutsch – Englisch" : "Englisch – Deutsch"),
+        h(
+          "p",
+          null,
+          "Schlage ein Wort nach und erhalte Bedeutungen, Aussprache, Grammatik, Beispiele und Übersetzungen – sortiert nach Sprachstil.",
+        ),
+        recent.length ? h("div", { class: "chip-group" }, h("h3", null, "Zuletzt gesucht"), chips(recent.map((r) => r.word))) : null,
+        SAMPLE_WORDS[state.from]
+          ? h("div", { class: "chip-group" }, h("h3", null, "Zum Ausprobieren"), chips(SAMPLE_WORDS[state.from]))
+          : null,
+      ),
+    );
+  }
+
+  function renderSkeleton() {
+    const bar = (w, hgt) => h("div", { class: "sk", style: `width:${w};height:${hgt}px` });
+    el.result.replaceChildren(
+      h("div", { class: "skeleton", "aria-label": "Eintrag wird geladen" }, bar("38%", 50), bar("24%", 16), bar("100%", 86), bar("100%", 70), bar("70%", 16), bar("85%", 16)),
+    );
+  }
+
+  let lookupId = 0;
+  async function search(rawWord) {
+    const word = rawWord.trim().replace(/\s+/g, " ");
+    if (!word) return;
+    el.searchInput.value = word;
+    const id = ++lookupId;
+    const { from, to } = state;
+    renderSkeleton();
+    try {
+      const entry = await lookup(word, from, to);
+      if (id !== lookupId) return;
+      state.current = { entry, query: word, from, to };
+      renderEntry(state.current, { animate: true });
+      if (entry.found) remember(entry.headword || word, from);
+    } catch (error) {
+      if (id !== lookupId) return;
+      state.current = null;
+      el.result.replaceChildren(
+        h(
+          "div",
+          { class: "message-box error" },
+          h("h3", null, "Nachschlagen fehlgeschlagen"),
+          h("p", null, error.message),
+          h("button", { type: "button", class: "btn-ghost", onclick: () => search(word) }, "Erneut versuchen"),
+        ),
+      );
+    }
+  }
+
+  function remember(word, from) {
+    state.history = [{ word, from }, ...state.history.filter((i) => !(i.word === word && i.from === from))].slice(0, 20);
+    store.set("history", state.history);
+  }
+
+  function section(title, ...content) {
+    return h("section", { class: "section" }, h("h2", { class: "section-title" }, title), ...content);
+  }
+
+  function wordChips(words) {
+    return h(
+      "div",
+      { class: "word-list" },
+      words.map((w) => h("button", { type: "button", class: "chip", onclick: () => search(w) }, w)),
+    );
+  }
+
+  function renderEntry({ entry, query, from, to }, { animate }) {
+    if (!entry.found) {
+      el.result.replaceChildren(
+        h(
+          "div",
+          { class: "message-box" },
+          h("h3", null, `Kein Eintrag für »${query}«`),
+          h(
+            "p",
+            null,
+            entry.suggestions && entry.suggestions.length
+              ? "Meinten Sie vielleicht eines dieser Wörter?"
+              : `Prüfe die Schreibweise oder die Sprachrichtung (${LANG[from].name} → ${LANG[to].name}).`,
+          ),
+          entry.suggestions && entry.suggestions.length ? wordChips(entry.suggestions) : null,
+        ),
+      );
+      return;
+    }
+
+    const translations = entry.translations || [];
+    const highlight = state.register === "einfach" ? "neutral" : state.register;
+    const matches = entry.basic ? [] : translations.filter((t) => t.register === highlight);
+
+    // Stil-Box: die passende Übersetzung für den gewählten Sprachstil
+    let styleBox = null;
+    if (translations.length) {
+      const reg = REG[state.register];
+      let label;
+      let shown = matches;
+      let note = "";
+      if (entry.basic) {
+        label = h("p", { class: "style-box-label" }, "Übersetzung");
+        shown = translations.slice(0, 1);
+      } else if (matches.length) {
+        label = h("p", { class: "style-box-label" }, "Im Stil ", h("b", null, reg.label));
+        note = matches[0].note;
+      } else {
+        const neutral = translations.filter((t) => t.register === "neutral");
+        shown = neutral.length ? neutral : translations.slice(0, 1);
+        label = h(
+          "p",
+          { class: "style-box-label" },
+          "Für ",
+          h("b", null, reg.label),
+          " gibt es keine eigene Entsprechung – im Standard:",
+        );
+      }
+      styleBox = h(
+        "div",
+        { class: "style-box", dataset: { register: entry.basic ? "neutral" : state.register } },
+        label,
+        h("p", { class: "style-box-terms", lang: to }, shown.map((t) => t.term).join(" · ")),
+        note ? h("p", { class: "style-box-note" }, note) : null,
+      );
+    }
+
+    const facts = [
+      ["Worttrennung", entry.syllables],
+      ["Aussprache", entry.pronunciation],
+      ["Grammatik", entry.grammar],
+      [
+        "Häufigkeit",
+        entry.frequency > 0
+          ? h(
+              "span",
+              { class: "freq", "aria-label": `${Math.min(5, entry.frequency)} von 5` },
+              [1, 2, 3, 4, 5].map((n) => h("i", { class: n <= entry.frequency ? "on" : "" })),
+            )
+          : "",
+      ],
+    ].filter(([, value]) => value);
+
+    const article = h(
+      "article",
+      { class: animate ? "entry entry-in" : "entry" },
+      entry.corrected_from
+        ? h(
+            "p",
+            { class: "entry-notice" },
+            `Gesucht: »${entry.corrected_from}« – angezeigt wird `,
+            h("strong", null, entry.headword),
+            ".",
+          )
+        : null,
+      h(
+        "div",
+        { class: "entry-head" },
+        h("h1", { class: "headword", lang: from }, entry.headword),
+        h(
+          "button",
+          { type: "button", class: "icon-btn", "aria-label": "Aussprache anhören", title: "Aussprache anhören", onclick: () => speak(entry.headword, from) },
+          icon("speak"),
+        ),
+      ),
+      entry.part_of_speech || entry.usage
+        ? h("p", { class: "entry-pos" }, entry.part_of_speech, entry.usage ? h("span", { class: "usage-tag" }, entry.usage) : null)
+        : null,
+      facts.length
+        ? h("dl", { class: "facts" }, facts.map(([label, value]) => h("div", { class: "fact" }, h("dt", null, label), h("dd", null, value))))
+        : null,
+      styleBox,
+      translations.length > 1 || (!entry.basic && translations.length)
+        ? section(
+            `Übersetzungen ins ${LANG[to].name}e`,
+            h(
+              "div",
+              { class: "translations" + (matches.length ? " has-match" : "") },
+              translations.map((t) =>
+                h(
+                  "div",
+                  { class: "translation" + (matches.includes(t) ? " is-match" : ""), dataset: { register: t.register } },
+                  h("div", { class: "translation-term", lang: to }, t.term),
+                  t.note ? h("div", { class: "translation-note" }, t.note) : null,
+                  entry.basic ? null : h("div", { class: "reg-tag" }, REG[t.register] ? REG[t.register].label : t.register),
+                ),
+              ),
+            ),
+          )
+        : null,
+      entry.meanings && entry.meanings.length
+        ? section(
+            "Bedeutungen",
+            h(
+              "ol",
+              { class: "meanings" },
+              entry.meanings.map((m) =>
+                h(
+                  "li",
+                  { class: "meaning" },
+                  h("p", { class: "meaning-def" }, m.definition),
+                  m.translation ? h("p", { class: "meaning-tr", lang: to }, "→ " + m.translation) : null,
+                  m.example
+                    ? h(
+                        "div",
+                        { class: "example" },
+                        h("p", { class: "example-src", lang: from }, m.example),
+                        m.example_translation ? h("p", { class: "example-tr", lang: to }, m.example_translation) : null,
+                      )
+                    : null,
+                ),
+              ),
+            ),
+          )
+        : null,
+      entry.english && entry.english.groups.length
+        ? section(
+            from === "en" ? "Bedeutungen (Englisch)" : `Englische Bedeutungen von »${entry.english.word}«`,
+            h(
+              "div",
+              { class: "definition-groups", lang: "en" },
+              entry.english.groups.map((g) =>
+                h(
+                  "div",
+                  { class: "definition-group" },
+                  h("h4", null, POS_DE[g.pos] || g.pos),
+                  h("ol", null, g.defs.map((d) => h("li", null, d.definition, d.example ? h("span", null, d.example) : null))),
+                ),
+              ),
+            ),
+          )
+        : null,
+      entry.idioms && entry.idioms.length
+        ? section(
+            "Wendungen & Redensarten",
+            h(
+              "ul",
+              { class: "idioms" },
+              entry.idioms.map((i) =>
+                h("li", { class: "idiom" }, h("span", { class: "idiom-phrase", lang: from }, i.phrase), h("span", { class: "idiom-tr", lang: to }, i.translation)),
+              ),
+            ),
+          )
+        : null,
+      (entry.synonyms && entry.synonyms.length) || (entry.antonyms && entry.antonyms.length)
+        ? section(
+            "Synonyme & Gegenteile",
+            entry.synonyms.length ? wordChips(entry.synonyms) : null,
+            entry.antonyms.length
+              ? h("div", { style: "margin-top:16px" }, h("p", { class: "sub-label" }, "Gegenteil"), wordChips(entry.antonyms))
+              : null,
+          )
+        : null,
+      entry.etymology ? section("Herkunft", h("p", { class: "etymology" }, entry.etymology)) : null,
+      h(
+        "p",
+        { class: "entry-foot" },
+        entry.basic
+          ? "Basis-Modus · Quellen: MyMemory, Free Dictionary API. Für vollständige Einträge den KI-Modus aktivieren."
+          : "KI-generierter Eintrag · Angaben ohne Gewähr.",
+      ),
+    );
+
+    el.result.replaceChildren(article);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Echtzeit-Übersetzer
+  // ---------------------------------------------------------------------------
+
+  let translateTimer;
+  let translateController;
+
+  function setStatus(text, busy) {
+    el.status.textContent = text;
+    el.status.classList.toggle("is-busy", Boolean(busy));
+  }
+
+  function onSourceInput(delay) {
+    const length = el.source.value.length;
+    el.charCount.textContent = `${length} / ${MAX_TEXT}`;
+    el.clear.hidden = length === 0;
+    scheduleTranslation(delay);
+  }
+
+  function scheduleTranslation(delay) {
+    clearTimeout(translateTimer);
+    if (delay == null) delay = state.ai ? 400 : 750;
+    translateTimer = setTimeout(translateNow, delay);
+  }
+
+  async function translateNow() {
+    if (translateController) translateController.abort();
+    const text = el.source.value;
+    if (!text.trim()) {
+      translateController = null;
+      el.target.textContent = "";
+      el.target.classList.remove("is-stale", "is-error");
+      setStatus("", false);
+      return;
+    }
+
+    const controller = new AbortController();
+    translateController = controller;
+    let received = false;
+    el.target.classList.remove("is-error");
+    el.target.classList.add("is-stale");
+    setStatus("übersetzt …", true);
+
+    try {
+      await translateStream(text, {
+        from: state.from,
+        to: state.to,
+        register: state.register,
+        signal: controller.signal,
+        onChunk(chunk) {
+          if (controller.signal.aborted) return;
+          if (!received) {
+            received = true;
+            el.target.textContent = "";
+            el.target.classList.remove("is-stale");
+          }
+          el.target.textContent += chunk;
+        },
+      });
+      if (controller.signal.aborted) return;
+      if (!received) el.target.textContent = "";
+      el.target.classList.remove("is-stale");
+      setStatus("", false);
+    } catch (error) {
+      if (controller.signal.aborted || error.name === "AbortError") return;
+      el.target.classList.remove("is-stale");
+      el.target.classList.add("is-error");
+      el.target.textContent = error.message;
+      setStatus("", false);
+    } finally {
+      if (translateController === controller) translateController = null;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Ereignisse
+  // ---------------------------------------------------------------------------
+
+  el.tabs.forEach((tab) => {
+    tab.addEventListener("click", () => setView(tab.dataset.view, { focus: true }));
+    tab.addEventListener("keydown", (event) => {
+      const keys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+      if (!keys.includes(event.key)) return;
+      event.preventDefault();
+      const next = state.view === "dictionary" ? "translator" : "dictionary";
+      setView(next);
+      document.querySelector(`.tab[data-view="${next}"]`).focus();
+    });
+  });
+
+  el.registers.addEventListener("keydown", (event) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const index = REGISTERS.findIndex((r) => r.id === state.register);
+    setRegister(REGISTERS[(index + step + REGISTERS.length) % REGISTERS.length].id);
+  });
+
+  el.from.addEventListener("change", () => setLanguages(el.from.value, el.from.value === state.to ? state.from : state.to));
+  el.to.addEventListener("change", () => setLanguages(el.to.value === state.from ? state.to : state.from, el.to.value));
+  el.swap.addEventListener("click", swapLanguages);
+  el.paneSwap.addEventListener("click", swapLanguages);
+
+  el.searchForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    search(el.searchInput.value);
+  });
+
+  el.source.addEventListener("input", () => onSourceInput());
+  el.source.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) onSourceInput(0);
+  });
+  el.clear.addEventListener("click", () => {
+    el.source.value = "";
+    onSourceInput(0);
+    el.source.focus();
+  });
+
+  el.copy.addEventListener("click", async () => {
+    const text = el.target.classList.contains("is-error") ? "" : el.target.textContent;
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("In die Zwischenablage kopiert.");
+    } catch {
+      toast("Kopieren nicht möglich.");
+    }
+  });
+  el.speak.addEventListener("click", () => {
+    if (!el.target.classList.contains("is-error")) speak(el.target.textContent, state.to);
+  });
+
+  window.addEventListener("hashchange", () => setView(location.hash === "#uebersetzer" ? "translator" : "dictionary"));
+
+  // ---------------------------------------------------------------------------
+  // Start
+  // ---------------------------------------------------------------------------
+
+  renderLanguageSelects();
+  renderRegisters();
+  renderEngine();
+  renderWelcome();
+  setView(location.hash === "#uebersetzer" ? "translator" : "dictionary");
+})();
+</script>
+</body>
+</html>
