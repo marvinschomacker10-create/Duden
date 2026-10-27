@@ -1,0 +1,17 @@
+{
+  "name": "wortwerk",
+  "version": "1.0.0",
+  "description": "Wörterbuch und Echtzeit-Übersetzer Deutsch ↔ Englisch mit Sprachstilen",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  }
+}

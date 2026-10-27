@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#000000">
+  <title>Wortwerk</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-family='Georgia,serif' font-size='20' font-weight='700' fill='%23f2b84b'%3EW%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 0 6.5 24H20v-5"/><path d="M8 7h8M8 11h6"/></symbol>
+    <symbol id="i-translate" viewBox="0 0 24 24"><path d="M3 5h10M8 3v2M5 9c1.5 3 4 5 7 6"/><path d="M11 5c-.8 4.5-3.3 8-7 10"/><path d="m13 21 4.5-10 4.5 10M14.5 18h6"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+    <symbol id="i-speak" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  </svg>
+
+  <div class="app">
+    <aside class="sidebar" aria-label="Bereiche">
+      <a class="logo" href="#" aria-label="Wortwerk Startseite">W</a>
+      <nav class="tabs" role="tablist" aria-orientation="vertical">
+        <button class="tab" role="tab" id="tab-dictionary" data-view="dictionary" aria-controls="view-dictionary">
+          <svg class="icon"><use href="#i-book"/></svg>
+          <span>Wörterbuch</span>
+        </button>
+        <button class="tab" role="tab" id="tab-translator" data-view="translator" aria-controls="view-translator">
+          <svg class="icon"><use href="#i-translate"/></svg>
+          <span>Übersetzer</span>
+        </button>
+      </nav>
+      <div class="engine" id="engine" title="">
+        <span class="engine-dot"></span>
+        <span class="engine-label" id="engine-label">…</span>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-name">Wortwerk</span>
+          <span class="brand-sub" id="brand-sub">Wörterbuch</span>
+        </div>
+        <div class="lang-picker" aria-label="Sprachrichtung">
+          <label class="lang-select">
+            <span class="sr-only">Ausgangssprache</span>
+            <select id="lang-from"></select>
+          </label>
+          <button class="icon-btn swap-btn" id="lang-swap" type="button" aria-label="Sprachen tauschen" title="Sprachen tauschen">
+            <svg class="icon"><use href="#i-swap"/></svg>
+          </button>
+          <label class="lang-select">
+            <span class="sr-only">Zielsprache</span>
+            <select id="lang-to"></select>
+          </label>
+        </div>
+      </header>
+
+      <div class="register-bar">
+        <span class="register-title">Sprachstil</span>
+        <div class="registers" id="registers" role="radiogroup" aria-label="Sprachstil"></div>
+        <p class="register-hint" id="register-hint"></p>
+      </div>
+
+      <!-- Wörterbuch -->
+      <section class="view" id="view-dictionary" role="tabpanel" aria-labelledby="tab-dictionary">
+        <form class="search" id="search-form" autocomplete="off">
+          <svg class="icon search-icon"><use href="#i-search"/></svg>
+          <input id="search-input" type="search" maxlength="80" placeholder="Wort nachschlagen …" aria-label="Wort nachschlagen" spellcheck="false">
+          <button class="btn-primary" type="submit">Suchen</button>
+        </form>
+        <div id="dictionary-result" aria-live="polite"></div>
+      </section>
+
+      <!-- Übersetzer -->
+      <section class="view" id="view-translator" role="tabpanel" aria-labelledby="tab-translator" hidden>
+        <div class="panes">
+          <div class="pane">
+            <div class="pane-head">
+              <span class="pane-lang" id="pane-from"></span>
+              <button class="icon-btn" id="clear-btn" type="button" aria-label="Text löschen" title="Text löschen" hidden>
+                <svg class="icon"><use href="#i-x"/></svg>
+              </button>
+            </div>
+            <textarea id="source-text" maxlength="5000" placeholder="Text eingeben – die Übersetzung erscheint sofort." spellcheck="true"></textarea>
+            <div class="pane-foot">
+              <span class="muted" id="char-count">0 / 5000</span>
+            </div>
+          </div>
+
+          <button class="icon-btn pane-swap" id="pane-swap" type="button" aria-label="Richtung tauschen" title="Richtung tauschen">
+            <svg class="icon"><use href="#i-swap"/></svg>
+          </button>
+
+          <div class="pane pane-out">
+            <div class="pane-head">
+              <span class="pane-lang" id="pane-to"></span>
+              <span class="status" id="translate-status"></span>
+            </div>
+            <div class="output" id="target-text" aria-live="polite" data-placeholder="Übersetzung"></div>
+            <div class="pane-foot">
+              <span class="muted" id="register-badge"></span>
+              <div class="pane-actions">
+                <button class="icon-btn" id="speak-btn" type="button" aria-label="Vorlesen" title="Vorlesen">
+                  <svg class="icon"><use href="#i-speak"/></svg>
+                </button>
+                <button class="icon-btn" id="copy-btn" type="button" aria-label="Kopieren" title="Kopieren">
+                  <svg class="icon"><use href="#i-copy"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
