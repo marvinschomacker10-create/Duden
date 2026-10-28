@@ -11,7 +11,974 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
-<link rel="stylesheet" href="style.css">
+<style>
+/* ===== Pixel-Optik ===== */
+/* Seelenernte – Pixel-Optik
+   Layout: Altar links, Chronik und Reiter in der Mitte, Händler rechts.
+   Unter 1100 px wird der Händler zum Reiter, unter 720 px steht der Altar oben. */
+:root {
+  --night: #0b0810;
+  --veil: rgba(6, 3, 10, 0.78);
+  --panel: #19131f;
+  --panel-2: #241b2e;
+  --panel-3: #30253d;
+  --line: #050307;
+  --bevel-hi: #3f3250;
+  --bevel-lo: #0d0912;
+  --bone: #ece3d2;
+  --muted: #a397b2;
+  --faint: #6d6280;
+  --soul: #4ff0cf;
+  --soul-dim: #22a596;
+  --blood: #c42332;
+  --blood-hi: #ff5a4e;
+  --blood-deep: #6e0d1c;
+  --gold: #f8c531;
+  --gold-deep: #a8741a;
+  --violet: #b18cff;
+  --btn: #3a2a4f;
+  --btn-hover: #4a3863;
+
+  --u: 4px; /* ein "Pixel" der Oberfläche */
+  --font-pixel: "Press Start 2P", "Courier New", monospace;
+  --font-body: "VT323", "Courier New", monospace;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background-color: var(--night);
+  background-image: linear-gradient(var(--veil), var(--veil)), var(--brick, none);
+  background-size: auto, 64px 40px;
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: 21px;
+  line-height: 1.15;
+  image-rendering: pixelated;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; touch-action: manipulation; }
+img { max-width: 100%; }
+h1, h2, h3, p { margin: 0; }
+h2, h3 { text-wrap: balance; }
+
+:focus-visible {
+  outline: 3px dashed var(--soul);
+  outline-offset: 4px;
+}
+
+/* ---------- Pixel-Rahmen ---------- */
+.px-box {
+  background: var(--panel);
+  box-shadow:
+    0 calc(var(--u) * -1) 0 0 var(--line),
+    0 var(--u) 0 0 var(--line),
+    calc(var(--u) * -1) 0 0 0 var(--line),
+    var(--u) 0 0 0 var(--line),
+    inset var(--u) var(--u) 0 0 var(--bevel-hi),
+    inset calc(var(--u) * -1) calc(var(--u) * -1) 0 0 var(--bevel-lo);
+}
+
+.px-inset {
+  background: var(--panel-2);
+  box-shadow:
+    inset var(--u) var(--u) 0 0 var(--bevel-lo),
+    inset calc(var(--u) * -1) calc(var(--u) * -1) 0 0 var(--bevel-hi);
+}
+
+.px-btn {
+  --bg: var(--btn);
+  --hi: rgba(255, 255, 255, 0.18);
+  --lo: rgba(0, 0, 0, 0.45);
+  position: relative;
+  border: 0;
+  padding: 14px 16px 12px;
+  background: var(--bg);
+  color: var(--bone);
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 calc(var(--u) * -1) 0 0 var(--line),
+    0 var(--u) 0 0 var(--line),
+    calc(var(--u) * -1) 0 0 0 var(--line),
+    var(--u) 0 0 0 var(--line),
+    inset var(--u) var(--u) 0 0 var(--hi),
+    inset calc(var(--u) * -1) calc(var(--u) * -1) 0 0 var(--lo);
+}
+.px-btn:hover:not(:disabled) { --bg: var(--btn-hover); }
+.px-btn:active:not(:disabled) {
+  transform: translateY(var(--u));
+  box-shadow:
+    0 calc(var(--u) * -1) 0 0 var(--line),
+    0 var(--u) 0 0 var(--line),
+    calc(var(--u) * -1) 0 0 0 var(--line),
+    var(--u) 0 0 0 var(--line),
+    inset var(--u) var(--u) 0 0 var(--lo),
+    inset calc(var(--u) * -1) calc(var(--u) * -1) 0 0 var(--hi);
+}
+.px-btn:disabled { cursor: not-allowed; --bg: #2a2333; color: var(--faint); }
+
+.btn-danger { --bg: var(--blood-deep); --btn-hover: var(--blood); }
+.btn-danger:hover:not(:disabled) { --bg: var(--blood); }
+
+.btn-gold { --bg: var(--gold); color: #2a1a02; }
+.btn-gold:hover:not(:disabled) { --bg: #ffd95a; }
+
+/* ---------- Grundlayout ---------- */
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(300px, 30%) minmax(0, 1fr) minmax(320px, 380px);
+  grid-template-areas: "altar middle shop";
+  gap: 22px;
+  padding-block: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ---------- Altar ---------- */
+.altar {
+  grid-area: altar;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  background: #07050c;
+  /* Rahmen über der Szene zeichnen */
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.altar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset var(--u) var(--u) 0 0 var(--bevel-hi),
+    inset calc(var(--u) * -1) calc(var(--u) * -1) 0 0 var(--bevel-lo);
+  z-index: 3;
+}
+
+.scene {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  image-rendering: pixelated;
+  z-index: 0;
+}
+
+.hud {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 18px 16px 0;
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 3px 3px 0 var(--line);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--violet);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.logo-soul { width: 16px; height: 20px; }
+
+.count {
+  font-family: var(--font-pixel);
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+.count-unit {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--soul);
+}
+
+.rate {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--muted);
+}
+.rate span { color: var(--bone); }
+
+.buffs {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 14px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.buff {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  background: rgba(10, 7, 16, 0.85);
+  box-shadow: 0 0 0 2px var(--buff, var(--blood));
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  color: var(--bone);
+  text-shadow: none;
+}
+.buff img { width: 24px; height: 24px; }
+.buff b { color: var(--buff, var(--blood-hi)); font-weight: 400; }
+
+.skull-btn {
+  position: absolute;
+  z-index: 1;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 40%;
+}
+.skull-btn:focus-visible { outline-offset: 0; }
+
+.floaters {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.floater {
+  position: absolute;
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  color: var(--soul);
+  text-shadow: 2px 2px 0 var(--line);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  animation: float-up 1.1s steps(11) forwards;
+}
+.floater.big { font-size: 16px; color: var(--gold); }
+@keyframes float-up {
+  from { transform: translate(-50%, -50%); opacity: 1; }
+  70% { opacity: 1; }
+  to { transform: translate(-50%, calc(-50% - 66px)); opacity: 0; }
+}
+
+/* ---------- Mitte ---------- */
+.middle {
+  grid-area: middle;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.ticker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  padding: 10px 16px;
+}
+.ticker-tag {
+  flex: none;
+  padding: 6px 8px 5px;
+  background: var(--blood);
+  color: var(--bone);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 0 2px var(--line);
+}
+.ticker-text {
+  min-width: 0;
+  font-size: 22px;
+  color: var(--bone);
+}
+.ticker-text::after {
+  content: "_";
+  color: var(--soul);
+  animation: blink 0.8s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  padding: 4px;
+}
+.tab {
+  position: relative;
+  border: 0;
+  padding: 11px 12px 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  box-shadow:
+    0 -3px 0 0 var(--line), 0 3px 0 0 var(--line), -3px 0 0 0 var(--line), 3px 0 0 0 var(--line),
+    inset 3px 3px 0 0 var(--bevel-hi);
+}
+.tab:hover { color: var(--bone); }
+.tab[aria-selected="true"] {
+  background: var(--panel-3);
+  color: var(--gold);
+  box-shadow:
+    0 -3px 0 0 var(--line), 0 3px 0 0 var(--gold), -3px 0 0 0 var(--line), 3px 0 0 0 var(--line),
+    inset 3px 3px 0 0 #574870;
+}
+.tab-shop { display: none; }
+.tab-dot {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--blood-hi);
+  box-shadow: 0 0 0 3px var(--line);
+  animation: blink 1s steps(1) infinite;
+}
+
+.panels {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 22px 26px;
+}
+.panel { display: grid; gap: 18px; align-content: start; }
+.panel-head { display: grid; gap: 8px; }
+.panel h2, .shop h2 {
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--gold);
+  line-height: 1.4;
+}
+.panel-sub { color: var(--muted); max-width: 62ch; }
+.sub-head {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--violet);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+}
+.empty { color: var(--muted); padding: 10px 0; max-width: 52ch; }
+.empty.small { font-size: 19px; padding: 0; }
+
+/* ---------- Reich ---------- */
+.realm { display: grid; gap: 12px; }
+.strip { display: grid; gap: 8px; }
+.strip-view {
+  position: relative;
+  height: 52px;
+  overflow: hidden;
+  background: var(--panel-2);
+  box-shadow: 0 0 0 3px var(--line);
+}
+.strip-view canvas { position: absolute; left: 0; top: 0; image-rendering: pixelated; }
+.strip-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  font-size: 20px;
+  color: var(--bone);
+}
+.strip-label b {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--gold);
+}
+.strip-label span { color: var(--muted); }
+
+/* ---------- Schicksalsrad ---------- */
+.wheel-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 22px 30px;
+}
+.wheel-stage {
+  flex: 1 1 300px;
+  min-width: 0;
+  max-width: 100%;
+  display: grid;
+  place-items: center;
+}
+.wheel-canvas { image-rendering: pixelated; max-width: 100%; }
+.wheel-side {
+  flex: 1 1 220px;
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  min-width: 0;
+}
+.btn-spin {
+  --bg: var(--blood);
+  --btn-hover: var(--blood-hi);
+  font-size: 16px;
+  padding: 18px 26px 16px;
+}
+.btn-spin:hover:not(:disabled) { --bg: #e0303f; }
+.wheel-status { font-size: 22px; }
+.wheel-status b { font-family: var(--font-pixel); font-size: 14px; color: var(--gold); font-weight: 400; }
+.wheel-streak { color: var(--muted); }
+.wheel-streak b { color: var(--soul); font-weight: 400; }
+.wheel-result {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  width: 100%;
+}
+.wheel-result img { width: 48px; height: 48px; }
+.wheel-result strong {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--gold);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.wheel-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px 18px;
+}
+.wheel-legend li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.wheel-legend img { width: 32px; height: 32px; }
+.wheel-legend .chance {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  color: var(--bone);
+  padding: 4px 5px 3px;
+  box-shadow: 0 0 0 2px var(--line);
+}
+.wheel-legend .name { display: block; color: var(--bone); }
+.wheel-legend .what { display: block; color: var(--muted); font-size: 18px; }
+
+/* ---------- Trophäen ---------- */
+.trophy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 52px);
+  gap: 10px;
+}
+.trophy {
+  width: 52px;
+  height: 52px;
+  border: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: #120d18;
+  box-shadow: inset 0 0 0 3px #2a2135;
+}
+.trophy img { width: 32px; height: 32px; }
+.trophy.is-won {
+  background: var(--panel-3);
+  box-shadow: inset 0 0 0 3px var(--gold-deep), inset 5px 5px 0 0 #574870;
+}
+.trophy-bonus { color: var(--soul); }
+
+/* ---------- Grimoire ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 20px;
+  margin: 0;
+  max-width: 640px;
+}
+.stats dt { color: var(--muted); }
+.stats dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+}
+
+.relic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+}
+.relic {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+}
+.relic img { width: 48px; height: 48px; }
+.relic strong {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.relic span { color: var(--muted); font-size: 19px; }
+.relic.is-missing strong { color: var(--faint); }
+
+/* ---------- Ritual ---------- */
+.ritual { display: grid; gap: 16px; max-width: 640px; }
+.ritual p { color: var(--muted); }
+.ritual .essence {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+.ritual .essence img { width: 48px; height: 48px; }
+.ritual .essence strong {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--violet);
+  margin-bottom: 6px;
+}
+.ritual .essence span { color: var(--bone); }
+.ritual-gain b { color: var(--soul); font-weight: 400; }
+
+/* ---------- Optionen ---------- */
+.options { display: grid; gap: 18px; justify-items: start; }
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  background: #0d0912;
+  box-shadow: 0 0 0 3px var(--line), inset 3px 3px 0 0 #000;
+  cursor: pointer;
+}
+.toggle input:checked {
+  background:
+    linear-gradient(var(--soul), var(--soul)) center / 12px 12px no-repeat,
+    #0d0912;
+}
+.option-row { display: flex; flex-wrap: wrap; gap: 16px; }
+.option-note { color: var(--soul); min-height: 1.2em; }
+.danger-zone {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  margin-top: 12px;
+  padding-top: 18px;
+  border-top: 3px dashed var(--panel-3);
+}
+
+/* ---------- Händler ---------- */
+.shop {
+  grid-area: shop;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+.shop-head {
+  display: grid;
+  gap: 14px;
+  padding: 20px 18px 14px;
+  background: var(--panel);
+  z-index: 2;
+}
+.shop-controls { display: flex; flex-wrap: wrap; gap: 12px; }
+.seg { display: flex; box-shadow: 0 0 0 3px var(--line); }
+.seg-btn {
+  border: 0;
+  padding: 9px 10px 8px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+}
+.seg-btn + .seg-btn { box-shadow: -3px 0 0 0 var(--line); }
+.seg-btn[aria-pressed="true"] { background: var(--soul-dim); color: #031512; }
+.seg-btn[data-mode="sell"][aria-pressed="true"] { background: var(--blood); color: var(--bone); }
+
+.shop-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 2px 18px 22px;
+}
+
+.upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 52px);
+  gap: 10px;
+  padding: 4px 3px;
+}
+.upg {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: #120d18;
+  box-shadow: inset 0 0 0 3px var(--frame, var(--gold)), 0 0 0 3px var(--line);
+}
+.upg img { width: 32px; height: 32px; }
+.upg .badge {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  padding: 2px 2px 1px;
+  background: var(--line);
+  color: var(--frame, var(--gold));
+  font-family: var(--font-pixel);
+  font-size: 6px;
+  line-height: 1;
+}
+.upg:not(.can-buy) img { opacity: 0.4; filter: grayscale(0.6); }
+.upg:not(.can-buy) { box-shadow: inset 0 0 0 3px #3a3045, 0 0 0 3px var(--line); }
+.upg.can-buy:hover { background: var(--panel-3); }
+
+.building-list { display: grid; gap: 8px; }
+.bld {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  padding: 8px 12px 8px 8px;
+  text-align: left;
+  background: var(--panel-2);
+  box-shadow: 0 0 0 3px var(--line), inset 3px 3px 0 0 var(--bevel-hi), inset -3px -3px 0 0 var(--bevel-lo);
+}
+.bld img { width: 48px; height: 48px; }
+.bld-main { display: grid; gap: 4px; min-width: 0; }
+.bld-name {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--bone);
+  overflow-wrap: anywhere;
+}
+.bld-cost {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 22px;
+  color: var(--soul);
+  font-variant-numeric: tabular-nums;
+}
+.bld-cost img { width: 10px; height: 12px; }
+.bld-count {
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.bld:hover { background: var(--panel-3); }
+.bld.too-expensive .bld-cost { color: var(--blood-hi); }
+.bld.too-expensive img { opacity: 0.55; }
+.bld.too-expensive .bld-name { color: var(--muted); }
+.bld.is-mystery { cursor: default; }
+.bld.is-mystery .bld-name { color: var(--faint); }
+.bld.is-mystery:hover { background: var(--panel-2); }
+.bld.sell-mode .bld-cost { color: var(--gold); }
+.bld.denied { animation: shake 0.24s steps(4); }
+@keyframes shake {
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* Händler als Reiter (schmale Bildschirme) */
+.shop.is-embedded {
+  background: transparent;
+  box-shadow: none;
+  min-height: auto;
+  margin: -22px -22px -26px;
+}
+.shop.is-embedded .shop-head {
+  position: sticky;
+  top: -22px;
+  padding: 20px 22px 14px;
+  box-shadow: 0 3px 0 0 var(--line);
+}
+.shop.is-embedded .shop-scroll { overflow: visible; padding: 14px 22px 26px; }
+
+/* ---------- Irrlichter ---------- */
+.wisp-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+}
+.wisp {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  pointer-events: auto;
+  animation: wisp-in 0.6s steps(6) both, wisp-bob 1.6s steps(8) infinite;
+}
+.wisp img { width: 72px; height: 72px; }
+.wisp.leaving { animation: wisp-out 0.6s steps(6) forwards; pointer-events: none; }
+@keyframes wisp-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wisp-out { to { opacity: 0; transform: translateY(-24px); } }
+@keyframes wisp-bob {
+  0%, 100% { translate: 0 0; }
+  25% { translate: 6px -6px; }
+  50% { translate: 0 -12px; }
+  75% { translate: -6px -6px; }
+}
+
+/* ---------- Meldungen ---------- */
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  display: grid;
+  gap: 12px;
+  width: min(380px, calc(100% - 48px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.toast {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  animation: toast-in 0.3s steps(4) both;
+}
+.toast.leaving { animation: toast-out 0.3s steps(4) forwards; }
+.toast img { width: 32px; height: 32px; }
+.toast strong {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  font-weight: 400;
+  color: var(--violet);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.toast span { display: block; color: var(--bone); }
+.toast span b { color: var(--gold); font-weight: 400; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(16px); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(16px); } }
+
+/* ---------- Tooltip ---------- */
+.tooltip {
+  position: fixed;
+  z-index: 70;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 14px 16px;
+  pointer-events: none;
+  display: grid;
+  gap: 8px;
+}
+.tip-head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.tip-head img { width: 32px; height: 32px; }
+.tip-title {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--gold);
+}
+.tip-owned { font-family: var(--font-pixel); font-size: 8px; color: var(--muted); }
+.tip-cost { display: flex; align-items: center; gap: 6px; color: var(--soul); font-size: 21px; }
+.tip-cost.no { color: var(--blood-hi); }
+.tip-cost img { width: 10px; height: 12px; }
+.tip-desc { color: var(--bone); }
+.tip-flavor { color: var(--muted); font-size: 19px; }
+.tip-meta { color: var(--muted); font-size: 18px; }
+.tip-meta b { color: var(--bone); font-weight: 400; }
+.tip-hint { color: var(--soul); font-size: 18px; }
+
+/* ---------- Dialog ---------- */
+.modal-back {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px max(16px, env(safe-area-inset-right, 0px)) 20px max(16px, env(safe-area-inset-left, 0px));
+  background: rgba(5, 3, 8, 0.82);
+}
+.modal {
+  width: min(480px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+.modal h2 {
+  font-family: var(--font-pixel);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--gold);
+}
+.modal-body { display: grid; gap: 12px; color: var(--bone); }
+.modal-body p { color: var(--muted); }
+.modal-body b { color: var(--soul); font-weight: 400; }
+.modal-body textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  padding: 10px;
+  border: 0;
+  background: #0d0912;
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: 16px;
+  box-shadow: 0 0 0 3px var(--line);
+  word-break: break-all;
+}
+.modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 16px; }
+
+.noscript { padding: 24px; font-family: var(--font-pixel); font-size: 12px; }
+
+/* ---------- Bildlaufleisten ---------- */
+* { scrollbar-width: thin; scrollbar-color: #4a3b5c #120d18; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #120d18; }
+::-webkit-scrollbar-thumb { background: #4a3b5c; border: 3px solid #120d18; }
+
+/* ---------- Mittlere Breite: Händler wird ein Reiter ---------- */
+@media (max-width: 1099px) {
+  .app {
+    grid-template-columns: minmax(280px, 40%) minmax(0, 1fr);
+    grid-template-areas: "altar middle";
+  }
+  .tab-shop { display: inline-block; }
+}
+
+/* ---------- Handy ---------- */
+@media (max-width: 719px) {
+  body { font-size: 20px; }
+  .toasts {
+    top: calc(20px + env(safe-area-inset-top, 0px));
+    bottom: auto;
+    gap: 10px;
+  }
+  .toast { grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding: 8px 10px; }
+  .toast img { width: 28px; height: 28px; }
+  .toast strong { margin-bottom: 3px; }
+  .toast span { font-size: 18px; }
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(240px, 40%) minmax(0, 1fr);
+    grid-template-areas: "altar" "middle";
+    gap: 16px;
+    padding-block: 12px;
+  }
+  .hud { gap: 8px; padding-top: 14px; }
+  .logo { font-size: 10px; }
+  .count { font-size: 18px; }
+  .count-unit { font-size: 10px; margin-top: 4px; }
+  .middle { gap: 14px; }
+  .ticker { min-height: 0; padding: 8px 12px; gap: 10px; }
+  .ticker-tag { display: none; }
+  .ticker-text {
+    font-size: 19px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .ticker-text::after { content: none; }
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 4px 4px 8px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; font-size: 8px; padding: 10px 10px 9px; }
+  .panels { padding: 18px 16px 22px; }
+  .shop.is-embedded { margin: -18px -16px -22px; }
+  .shop.is-embedded .shop-head { top: -18px; padding: 16px 16px 12px; }
+  .shop.is-embedded .shop-scroll { padding: 12px 16px 22px; }
+  .wheel-wrap { justify-content: center; }
+  .wheel-side { justify-items: center; text-align: center; }
+}
+
+@media (max-width: 719px) and (max-height: 760px) {
+  .logo { display: none; }
+  .hud { padding-top: 12px; gap: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floater { animation: fade-out 1s steps(5) forwards; }
+  .wisp { animation: wisp-in 0.6s steps(6) both; }
+  .tab-dot, .ticker-text::after { animation: none; }
+  @keyframes fade-out { to { opacity: 0; } }
+}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -166,8 +1133,3141 @@
 </div>
 
 <noscript><p class="noscript">Seelenernte braucht JavaScript.</p></noscript>
-<script src="sprites.js"></script>
-<script src="data.js"></script>
-<script src="game.js"></script>
+<script>
+/* ===== Pixelgrafiken ===== */
+/* Seelenernte – Pixelgrafiken
+ * Jede Grafik ist ein Raster aus Zeichen; jedes Zeichen steht für eine Farbe aus PALETTE.
+ * "." ist durchsichtig. Bei mirror: true ist nur die linke Hälfte gezeichnet,
+ * die rechte wird gespiegelt. overlay setzt danach einzelne Pixel: [x, y, Zeichen].
+ */
+"use strict";
+
+window.SE = window.SE || {};
+
+SE.PALETTE = {
+  k: "#0a0710", // Umriss
+  K: "#231a2c", // sehr dunkel
+  d: "#3a2f45", // dunkler Stein
+  g: "#5b5068", // Stein
+  G: "#8a809a", // heller Stein
+  x: "#9c917f", // Knochen, Schatten
+  w: "#d8cfbf", // Knochen
+  W: "#f7f1e3", // Knochen, Licht
+  r: "#6e0d1c", // dunkles Blut
+  R: "#c42332", // Blut
+  L: "#ff5a4e", // helles Rot
+  o: "#e2691c", // Orange
+  u: "#a8741a", // dunkles Gold
+  y: "#f8c531", // Gold
+  Y: "#fff2a8", // helles Gold
+  p: "#35184f", // dunkles Violett
+  P: "#6d34a8", // Violett
+  v: "#b18cff", // helles Violett
+  V: "#e8dcff", // sehr helles Violett
+  t: "#0f5550", // dunkles Seelengrün
+  c: "#22a596", // Seelengrün
+  C: "#4ff0cf", // Seele
+  e: "#d6fff4", // Seele, Licht
+  b: "#4a2e1c", // dunkles Braun
+  B: "#7d5130", // Braun
+  n: "#1f4a23", // dunkles Grün
+  N: "#3f8a35", // Grün
+  M: "#86c84a", // helles Grün
+  s: "#1c2540", // Nachtblau
+  S: "#3a4c7a", // Blau
+  Z: "#6f86c2", // helles Blau
+};
+
+SE.SPRITES = {
+  /* ---------- Der Schädel (32×32) ---------- */
+  skull: {
+    mirror: true,
+    mirrorMap: { W: "w" },
+    rows: [
+      "................",
+      "...........kkkkk",
+      "........kkkwwwww",
+      "......kkwwwwwwww",
+      ".....kwwwwWWWWww",
+      "....kwwwWWWWWwww",
+      "...kwwwWWWwwwwww",
+      "...kwwWWwwwwwwww",
+      "..kwwwWWwwwwwwww",
+      "..kwwWWwwwwwwwww",
+      "..kwwWwwwwwwwwww",
+      "..kxwwwwwwwwwwww",
+      "..kxwwwwwwwwwwww",
+      "..kxwwwkkkkwwwww",
+      "..kxwwkkkkkkwwww",
+      "..kxwkkkkkkkkwww",
+      "..kxwkkkCCkkkwww",
+      "..kxwkkCeeCkkwww",
+      "..kxwkkCeeCkkwww",
+      "..kxwkkkCCkkkwww",
+      "..kxwwkkkkkkkwww",
+      "...kxwwkkkkkwwwk",
+      "...kxxwwwwwwwwkk",
+      "....kxxwwwwwwwkk",
+      ".....kxxwwwwwwwk",
+      "......kxxwwwwwww",
+      "......kkkkkkkkkk",
+      "......kWkWWkWWkW",
+      "......kxkxxkxxkx",
+      ".......kkkkkkkkk",
+      ".......kxkwwkwwk",
+      "........kkkkkkkk",
+    ],
+    // Riss in der Schädeldecke
+    overlay: [
+      [20, 3, "k"], [21, 4, "k"], [21, 5, "k"], [22, 6, "k"], [21, 7, "k"],
+      [22, 8, "k"], [23, 9, "k"], [23, 10, "x"],
+    ],
+  },
+
+  /* ---------- Währung & Irrlicht ---------- */
+  soul: {
+    rows: [
+      "...c....",
+      "...cc...",
+      "..cCc...",
+      "..cCCc..",
+      ".cCeCCc.",
+      ".cCeeCc.",
+      "cCekekCc",
+      "cCeeeeCc",
+      ".cCeeCc.",
+      "..cccc..",
+    ],
+  },
+  wisp: {
+    mirror: true,
+    rows: [
+      "....cc",
+      "..ccCC",
+      ".cCCee",
+      ".cCeee",
+      "cCeeke",
+      "cCeeke",
+      "cCeeee",
+      "cCeeek",
+      ".cCeee",
+      ".cCCee",
+      "..ccCC",
+      "....cc",
+    ],
+  },
+
+  /* ---------- Gebäude (16×16) ---------- */
+  hand: {
+    rows: [
+      "....k.k.k.......",
+      "...kWkWkWk......",
+      "...kwkwkwk......",
+      "...kxkxkxk.k....",
+      "...kWkWkWkkWk...",
+      "...kwkwkwkkwk...",
+      "...kwkwkwkwxk...",
+      "...kwwwwwwwwk...",
+      "...kxwwwwwwk....",
+      "....kxwwwwxk....",
+      ".....kwkkwk.....",
+      ".....kwkkwk.....",
+      "...bbkwkkwkbb...",
+      "..bBBBkxxkBBBb..",
+      ".bBBbBBBBBBbBBb.",
+      "bbbbbbbbbbbbbbbb",
+    ],
+  },
+  witch: {
+    rows: [
+      "...........kk...",
+      "..........kPPk..",
+      ".........kPPk...",
+      "........kPPPk...",
+      ".......kPPvPk...",
+      ".......kPvPPPk..",
+      "......kPPPPPPk..",
+      "......kyyyyyyk..",
+      "...kkkPPPPPPPPkk",
+      ".kkPPPPPPPPPPPPk",
+      "..kkkkkkkkkkkkk.",
+      "...kpNNNNNNNNpk.",
+      "...kpNkNNNNkNpk.",
+      "...kpNNNNnNNNpk.",
+      "...kpNNkkkkNNpk.",
+      "....kpkNNNNkpk..",
+    ],
+  },
+  graveyard: {
+    mirror: true,
+    rows: [
+      "........",
+      "....kkkk",
+      "...kGGGG",
+      "..kGGGGG",
+      "..kGgGGk",
+      "..kGgkkk",
+      "..kGgGGk",
+      "..kGgGGk",
+      "..kGgGGk",
+      "..kGgggg",
+      "..kgdddd",
+      ".nkgdddd",
+      "nNkkkkkk",
+      "NMNnNNNn",
+      "nNnNnnNN",
+      "nnnnnnnn",
+    ],
+    overlay: [[4, 9, "N"], [5, 10, "N"], [4, 10, "n"], [11, 3, "W"]],
+  },
+  crypt: {
+    mirror: true,
+    rows: [
+      ".......k",
+      "......kG",
+      ".....kGg",
+      "....kGgg",
+      "...kGggg",
+      "..kkkkkk",
+      "..kGGGGG",
+      "..kkkkkk",
+      "..kGkgKK",
+      "..kGkgKK",
+      "..kGkgKC",
+      "..kGkgKK",
+      "..kGkgKK",
+      ".kkkkkkk",
+      "kGGGGGGG",
+      "kkkkkkkk",
+    ],
+  },
+  tower: {
+    mirror: true,
+    rows: [
+      "..kkk.kk",
+      "..kGk.kG",
+      "..kGkkkG",
+      "..kgGGGG",
+      "..kkkkkk",
+      "...kgggg",
+      "...kggkk",
+      "...kgkvv",
+      "...kgkPv",
+      "...kgkkk",
+      "...kgggg",
+      "...kdggg",
+      "...kggkk",
+      "...kgkKK",
+      "..kkgkKK",
+      ".kkkkkkk",
+    ],
+    overlay: [[9, 11, "d"], [6, 5, "G"]],
+  },
+  altar: {
+    mirror: true,
+    rows: [
+      "..y.....",
+      ".yYy....",
+      "..o.....",
+      ".kWk....",
+      ".kwk.kkk",
+      ".kwkkRRR",
+      ".kwkkrRR",
+      ".kxk.kgg",
+      "kkkkkkkk",
+      "kGGGGGGG",
+      "kggggggg",
+      "kkkkkkkk",
+      "..kgggrg",
+      "..kgggrg",
+      "..kdddrd",
+      ".kkkkkkk",
+    ],
+    overlay: [[9, 13, "g"], [9, 12, "g"], [9, 14, "d"], [7, 5, "L"]],
+  },
+  demon: {
+    mirror: true,
+    rows: [
+      "kk......",
+      "kwk.....",
+      "kwk.....",
+      ".kwk....",
+      ".kxwkkkk",
+      "..kxRRRR",
+      "..kRRRRR",
+      ".kRRyyRR",
+      ".kRRkyRR",
+      ".kRRRRRR",
+      "..kRRRRr",
+      "..kRkWkk",
+      "...kRWkR",
+      "....kRRR",
+      ".....kkk",
+      "........",
+    ],
+  },
+  lich: {
+    mirror: true,
+    rows: [
+      "...y..y.",
+      "...yy.yy",
+      "...yyyyy",
+      "...yRyyu",
+      ".ppkkkkk",
+      "pPkwwwww",
+      "pPkwkkww",
+      "pPkwkCww",
+      "pPkwwwwk",
+      "pPPkwwww",
+      "pPPkwkwk",
+      "pPPPkkkk",
+      "pPPPPPPP",
+      "pPPvPPPP",
+      "ppPPPPPP",
+      ".ppppppp",
+    ],
+  },
+  portal: {
+    mirror: true,
+    rows: [
+      ".....kkk",
+      "...kkggg",
+      "..kggkkk",
+      ".kgkkrrr",
+      ".kgkrRRR",
+      "kgkrRooo",
+      "kgkrRoyy",
+      "kgkrRoyY",
+      "kgkrRoyY",
+      "kgkrRoyy",
+      "kgkrRooo",
+      ".kgkrRRR",
+      ".kgkkrrr",
+      "..kggkkk",
+      "...kkggg",
+      ".....kkk",
+    ],
+  },
+  egg: {
+    mirror: true,
+    rows: [
+      "........",
+      "......kk",
+      ".....kRR",
+      "....kRLR",
+      "...kRLRR",
+      "...kRRRR",
+      "..kRRRrR",
+      "..kRRRRR",
+      "..kRRrRR",
+      "..krRRRR",
+      "..krRRRr",
+      "...krrRr",
+      ".bbkkrrr",
+      "bBbBkkkk",
+      ".bBbBbBb",
+      "..bbbbbb",
+    ],
+    // glühender Riss
+    overlay: [
+      [8, 4, "o"], [7, 5, "y"], [8, 6, "o"], [9, 7, "y"], [8, 8, "o"], [7, 9, "y"], [8, 10, "o"],
+    ],
+  },
+  moon: {
+    mirror: true,
+    rows: [
+      ".....kkk",
+      "...kkRRR",
+      "..kRLLLR",
+      ".kRLLRRR",
+      ".kRLRRRR",
+      "kRLRRRRR",
+      "kRLRRRRR",
+      "kRRRRRRR",
+      "kRRRRRRR",
+      "kRRRRRRR",
+      "krRRRRRR",
+      ".krRRRRR",
+      ".krrRRRR",
+      "..krrrRR",
+      "...kkrrr",
+      ".....kkk",
+    ],
+    overlay: [
+      [9, 4, "r"], [10, 4, "r"], [9, 5, "r"], [10, 5, "r"], [11, 5, "L"],
+      [5, 9, "r"], [6, 9, "r"], [5, 10, "r"],
+      [10, 10, "r"], [11, 10, "r"], [10, 11, "r"], [11, 11, "r"], [12, 11, "L"],
+    ],
+  },
+  eye: {
+    mirror: true,
+    rows: [
+      "........",
+      "........",
+      "....kkkk",
+      "..kkVVVV",
+      ".kVVVVyy",
+      "kVVVVyoo",
+      "kVVVyook",
+      "kVVVyook",
+      "kVVVyook",
+      "kVVVVyoo",
+      ".kVVVVyy",
+      "..kkVVVV",
+      "...pkkkk",
+      "..pP.p.P",
+      "..p..P.p",
+      ".....p..",
+    ],
+    overlay: [[2, 6, "R"], [3, 6, "R"], [3, 7, "R"], [13, 8, "R"], [12, 8, "R"], [12, 9, "R"], [6, 6, "Y"]],
+  },
+
+  /* ---------- Verbesserungen ---------- */
+  blade: {
+    rows: [
+      ".............kk.",
+      "............kWWk",
+      "...........kWwk.",
+      "..........kWwk..",
+      ".........kWwk...",
+      "........kWwk....",
+      ".......kWwk.....",
+      "......kWwk......",
+      "..kk.kWwk.......",
+      "..kykWwk........",
+      "...kywk.........",
+      "...kkyyk........",
+      "..kbk.kyk.......",
+      ".kbk...kk.......",
+      "kbk.............",
+      "kk..............",
+    ],
+  },
+  potion: {
+    mirror: true,
+    rows: [
+      "......kk",
+      "......kB",
+      "......kk",
+      "......kV",
+      ".....kkV",
+      "...kkVVV",
+      "..kVVVVV",
+      ".kVRRRRR",
+      ".kRRRRRR",
+      "kRRRRRRR",
+      "kRRRRRRR",
+      "kRRRRRRR",
+      ".krRRRRR",
+      ".krrRRRR",
+      "..kkrrrr",
+      "....kkkk",
+    ],
+    overlay: [[4, 8, "W"], [4, 9, "W"], [5, 10, "W"], [10, 11, "L"]],
+  },
+  lantern: {
+    mirror: true,
+    rows: [
+      "......kk",
+      ".....k..",
+      ".....kkk",
+      "....kuyy",
+      "...kkkkk",
+      "...kucCC",
+      "...kuCee",
+      "...kuCee",
+      "...kucCC",
+      "...kucCC",
+      "...kkkkk",
+      "....kuyy",
+      ".....kkk",
+      "........",
+      "........",
+      "........",
+    ],
+  },
+  hourglass: {
+    mirror: true,
+    rows: [
+      ".kkkkkkk",
+      ".kBBBBBB",
+      ".kkkkkkk",
+      "..kVCCCC",
+      "..kVCCCC",
+      "...kVCCC",
+      "....kVCC",
+      ".....kVC",
+      ".....kVc",
+      "....kV..",
+      "...kV..C",
+      "..kV.cCC",
+      "..kVCCCC",
+      ".kkkkkkk",
+      ".kBBBBBB",
+      ".kkkkkkk",
+    ],
+  },
+
+  /* ---------- Relikte ---------- */
+  amulet: {
+    mirror: true,
+    rows: [
+      ".k......",
+      ".yk.....",
+      "..yk....",
+      "...yk...",
+      "....yk..",
+      ".....yk.",
+      "......yk",
+      ".....kky",
+      "....kyyy",
+      "...kyyRR",
+      "...kyRLR",
+      "...kyRRR",
+      "...kuyRR",
+      "....kuyy",
+      ".....kku",
+      ".......k",
+    ],
+  },
+  ring: {
+    mirror: true,
+    rows: [
+      "......kk",
+      ".....kPv",
+      "....kPvV",
+      ".....kPP",
+      "....kkyk",
+      "...kyyYy",
+      "..kyykkk",
+      ".kyyk...",
+      ".kyk....",
+      ".kyk....",
+      ".kuyk...",
+      "..kuyk..",
+      "...kuykk",
+      "....kkuu",
+      "......kk",
+      "........",
+    ],
+  },
+  chalice: {
+    mirror: true,
+    rows: [
+      "........",
+      ".kkkkkkk",
+      ".kyRRRRR",
+      ".kyRLRRR",
+      ".kyyyyyy",
+      "..kyyYyy",
+      "..kuyyyy",
+      "...kuyyy",
+      "....kkuy",
+      "......ky",
+      "......ky",
+      ".....kuy",
+      "....kuyy",
+      "...kuuyy",
+      "...kkkkk",
+      "........",
+    ],
+  },
+  grimoire: {
+    rows: [
+      "..kkkkkkkkkkkk..",
+      ".kyPPPPPPPPPPyk.",
+      ".kPPPPPPPPPPPPkW",
+      ".kPPPPkkkkPPPPkW",
+      ".kPPPkwwwwkPPPkW",
+      ".kPPPkwkkwkPPPkW",
+      ".kPPPkwkkwkPPPkW",
+      ".kPPPkwwwwkPPPkW",
+      ".kPPPPkwwkPPPPkW",
+      ".kPPPPkkkkPPPPkW",
+      ".kPPPPPPPPPPPPkW",
+      ".kPPPPPPPPPPPPkW",
+      ".kyPPPPPPPPPPykW",
+      ".kkkkkkkkkkkkkkW",
+      "..kWWWWWWWWWWWWk",
+      "...kkkkkkkkkkkk.",
+    ],
+  },
+  feather: {
+    rows: [
+      "............kkk.",
+      "...........kPvk.",
+      "..........kPvPk.",
+      ".........kPvPKk.",
+      "........kPvPKk..",
+      ".......kPvPKKk..",
+      "......kPvPKKk...",
+      ".....kPvPKKk....",
+      "....kPvPKKk.....",
+      "...kPvPKKk......",
+      "...kvPKKk.......",
+      "..kvPKkk........",
+      "..kGkk..........",
+      ".kGk............",
+      "kGk.............",
+      "kk..............",
+    ],
+  },
+  dice: {
+    mirror: true,
+    rows: [
+      "........",
+      "..kkkkkk",
+      ".kWWWWWW",
+      ".kWkkWWW",
+      ".kWkkWWW",
+      ".kWWWWWW",
+      ".kWWWWWW",
+      ".kWWWWWk",
+      ".kWWWWWk",
+      ".kWWWWWW",
+      ".kWWWWWW",
+      ".kWkkWWW",
+      ".kxkkxxx",
+      ".kxxxxxx",
+      "..kkkkkk",
+      "........",
+    ],
+  },
+  crown: {
+    mirror: true,
+    rows: [
+      "........",
+      "........",
+      "........",
+      ".k.....k",
+      "kyk...ky",
+      "kyyk.kyy",
+      "kyyykyyy",
+      "kyyyyyyy",
+      "kyRyyyCy",
+      "kyyyyyyy",
+      "kuuuuuuu",
+      "kyyyyyyy",
+      "kkkkkkkk",
+      "........",
+      "........",
+      "........",
+    ],
+  },
+  orb: {
+    mirror: true,
+    rows: [
+      "........",
+      ".....kkk",
+      "...kkPPP",
+      "..kPPvvv",
+      ".kPvVVvv",
+      ".kPvVvvP",
+      "kPPvvvPP",
+      "kPPPvPPp",
+      "kpPPPPPp",
+      ".kpPPPpp",
+      ".kppppp.",
+      "..kkpppp",
+      "...kkkkk",
+      "..kBBBBB",
+      ".kbBBBBB",
+      ".kkkkkkk",
+    ],
+  },
+
+  /* ---------- Schicksalsrad ---------- */
+  bag: {
+    mirror: true,
+    rows: [
+      "........",
+      "......kk",
+      ".....kBB",
+      "......kk",
+      ".....kRk",
+      "....kBBB",
+      "...kBBBB",
+      "..kBBBBB",
+      ".kBBBBkC",
+      ".kBBBkCe",
+      "kBBBBkCe",
+      "kBBBBBkC",
+      "kbBBBBBk",
+      ".kbbBBBB",
+      "..kkbbbb",
+      "....kkkk",
+    ],
+  },
+  chest: {
+    mirror: true,
+    rows: [
+      "........",
+      "........",
+      "...kkkkk",
+      "..kBBBBB",
+      ".kBBBBBB",
+      ".kyyyyyy",
+      ".kBBBBBk",
+      "kkkkkkky",
+      "kBBBBBky",
+      "kyBBBBBk",
+      "kyBBBBBB",
+      "kBBBBBBB",
+      "kbBBBBBB",
+      "kyyyyyyy",
+      "kkkkkkkk",
+      "........",
+    ],
+  },
+  coffin: {
+    mirror: true,
+    rows: [
+      ".....kkk",
+      "....kBBB",
+      "...kBBBB",
+      "..kBBBBk",
+      "..kBBBky",
+      ".kBBBBky",
+      ".kBBkkky",
+      ".kBByyyy",
+      ".kBBkkky",
+      "..kBBBky",
+      "..kBBBky",
+      "..kBBBBk",
+      "...kBBBB",
+      "...kbBBB",
+      "....kbbb",
+      ".....kkk",
+    ],
+  },
+  pointer: {
+    mirror: true,
+    rows: [
+      "kkkkk",
+      "kRRRR",
+      "kRLLL",
+      ".kRRR",
+      ".kRRR",
+      "..kRR",
+      "..kRR",
+      "...kR",
+      "...kk",
+    ],
+  },
+  lock: {
+    mirror: true,
+    rows: [
+      "........",
+      "........",
+      ".....kkk",
+      "....kggg",
+      "...kgk..",
+      "...kgk..",
+      "..kkkkkk",
+      "..kGGGGG",
+      "..kGgggg",
+      "..kGggkk",
+      "..kGggkk",
+      "..kGgggk",
+      "..kGgggg",
+      "..kkkkkk",
+      "........",
+      "........",
+    ],
+  },
+
+  /* ---------- Szene ---------- */
+  brick: {
+    rows: [
+      "gggggggkgggggggk",
+      "dddddddkdddgdddk",
+      "dddddddkdddddddk",
+      "KKKKKKKkKKKKKKKk",
+      "kkkkkkkkkkkkkkkk",
+      "gggkgggggggkgggg",
+      "dddkdddddddkdgdd",
+      "dddkdddddddkdddd",
+      "KKKkKKKKKKKkKKKK",
+      "kkkkkkkkkkkkkkkk",
+    ],
+  },
+  ground: {
+    rows: [
+      "gGGGGGGkgGGGGGGk",
+      "gdddddgkgddddgdk",
+      "gddddddkgdddddgk",
+      "gddgdddkgddddddk",
+      "KKKKKKKkKKKKKKKk",
+      "kkkkkkkkkkkkkkkk",
+      "dddkgGGGGGGkgddd",
+      "dddkgddgdddkgddd",
+      "dgdkgdddddgkgddd",
+      "dddkgddddddkgdgd",
+      "KKKkKKKKKKKkKKKK",
+      "kkkkkkkkkkkkkkkk",
+    ],
+  },
+  sconce: {
+    rows: [
+      ".kkkkk.",
+      "kuyyyuk",
+      ".kuyuk.",
+      "..kyk..",
+      "..kuk..",
+      "..kuk..",
+      "..kuk..",
+      ".kkukk.",
+      ".kuuuk.",
+      "..kkk..",
+    ],
+  },
+};
+
+/* ---------- Bauen und Zeichnen ---------- */
+(function () {
+  const cache = {};
+  const urlCache = {};
+
+  function build(name) {
+    if (cache[name]) return cache[name];
+    const def = SE.SPRITES[name];
+    if (!def) throw new Error("Unbekannte Grafik: " + name);
+    let rows = def.rows;
+    if (def.mirror) {
+      const map = def.mirrorMap || {};
+      rows = rows.map((r) => r + r.split("").reverse().map((c) => map[c] || c).join(""));
+    }
+    const h = rows.length;
+    const w = Math.max(...rows.map((r) => r.length));
+    const grid = rows.map((r) => r.padEnd(w, ".").split(""));
+    for (const [x, y, c] of def.overlay || []) {
+      if (grid[y] && x < w) grid[y][x] = c;
+    }
+    return (cache[name] = { w, h, grid });
+  }
+
+  // pal: optionales Objekt { Zeichen: Farbe } oder Funktion (Zeichen, Farbe) => Farbe
+  function colorFor(ch, pal) {
+    if (ch === "." || ch === " ") return null;
+    const base = SE.PALETTE[ch] || null;
+    if (!pal) return base;
+    if (typeof pal === "function") return pal(ch, base);
+    return pal[ch] !== undefined ? pal[ch] : base;
+  }
+
+  SE.spriteSize = (name) => {
+    const s = build(name);
+    return { w: s.w, h: s.h };
+  };
+
+  SE.drawSprite = function (ctx, name, x, y, opts = {}) {
+    const s = build(name);
+    const scale = opts.scale || 1;
+    const flip = !!opts.flip;
+    for (let j = 0; j < s.h; j++) {
+      for (let i = 0; i < s.w; i++) {
+        const col = colorFor(s.grid[j][i], opts.pal);
+        if (!col) continue;
+        ctx.fillStyle = col;
+        const px = flip ? s.w - 1 - i : i;
+        ctx.fillRect(Math.round(x + px * scale), Math.round(y + j * scale), scale, scale);
+      }
+    }
+  };
+
+  SE.spriteCanvas = function (name, opts = {}) {
+    const s = build(name);
+    const scale = opts.scale || 1;
+    const c = document.createElement("canvas");
+    c.width = s.w * scale;
+    c.height = s.h * scale;
+    SE.drawSprite(c.getContext("2d"), name, 0, 0, opts);
+    return c;
+  };
+
+  // Daten-URL für <img>; key unterscheidet Farbvarianten im Zwischenspeicher
+  SE.spriteURL = function (name, opts = {}) {
+    const key = name + "|" + (opts.key || "") + "|" + (opts.scale || 1);
+    if (!urlCache[key]) urlCache[key] = SE.spriteCanvas(name, opts).toDataURL();
+    return urlCache[key];
+  };
+
+  // Farbvarianten
+  SE.PAL = {
+    // alles außer durchsichtig in einer Farbe: für gesperrte Dinge
+    silhouette: (color) => (ch) => (ch === "." ? null : color),
+    // dunkler machen (für "???"-Gebäude)
+    shadow: () => (ch) => {
+      if (ch === ".") return null;
+      return ch === "k" ? "#050308" : "#1d1626";
+    },
+  };
+})();
+</script>
+<script>
+/* ===== Spielinhalte ===== */
+/* Seelenernte – Spielinhalte */
+"use strict";
+
+window.SE = window.SE || {};
+
+/* ---------- Gebäude ---------- */
+// cost: Grundpreis, sps: Seelen pro Sekunde je Stück, floor/sky: Farben der Reihe im Reich
+SE.BUILDINGS = [
+  { id: "hand", name: "Knochenhand", plural: "Knochenhände", sprite: "hand", cost: 15, sps: 0.1,
+    desc: "Greift alle zehn Sekunden aus dem Grab nach einer Seele.", sky: "#1a1220", floor: "#4a2e1c" },
+  { id: "witch", name: "Hexe", plural: "Hexen", sprite: "witch", cost: 100, sps: 1,
+    desc: "Braut in ihrem Kessel Seelen aus Krötenschleim und Mondlicht.", sky: "#161226", floor: "#2b1d3a" },
+  { id: "graveyard", name: "Friedhof", plural: "Friedhöfe", sprite: "graveyard", cost: 1100, sps: 8,
+    desc: "Wo Tote ruhen, lassen sich Seelen ernten. Niemand beschwert sich.", sky: "#121a1a", floor: "#1f4a23" },
+  { id: "crypt", name: "Gruft", plural: "Grüfte", sprite: "crypt", cost: 12000, sps: 47,
+    desc: "Tief unter der Erde warten uralte Seelen auf ihre Befreiung.", sky: "#141218", floor: "#3a2f45" },
+  { id: "tower", name: "Nekromantenturm", plural: "Nekromantentürme", sprite: "tower", cost: 130000, sps: 260,
+    desc: "Nekromanten beschwören rund um die Uhr. Pausen sind abgeschafft.", sky: "#170f22", floor: "#35184f" },
+  { id: "altar", name: "Blutaltar", plural: "Blutaltäre", sprite: "altar", cost: 1.4e6, sps: 1400,
+    desc: "Jedes Opfer lockt neue Seelen an. Die Flecken gehen nie wieder raus.", sky: "#1c0c12", floor: "#6e0d1c" },
+  { id: "demon", name: "Dämonentempel", plural: "Dämonentempel", sprite: "demon", cost: 2e7, sps: 7800,
+    desc: "Dämonen beten zu dir und zahlen den Zehnten in Seelen.", sky: "#210b0b", floor: "#5a1a0e" },
+  { id: "lich", name: "Lich-Zitadelle", plural: "Lich-Zitadellen", sprite: "lich", cost: 3.3e8, sps: 44000,
+    desc: "Untote Könige verwalten dein Reich mit kalter Effizienz.", sky: "#150c20", floor: "#2a1640" },
+  { id: "portal", name: "Höllenportal", plural: "Höllenportale", sprite: "portal", cost: 5.1e9, sps: 260000,
+    desc: "Ein Tor in die Unterwelt, aus dem Seelen in Strömen fließen.", sky: "#1f0a06", floor: "#7a2a0c" },
+  { id: "egg", name: "Drachenbrut", plural: "Drachenbruten", sprite: "egg", cost: 7.5e10, sps: 1.6e6,
+    desc: "Junge Drachen schlüpfen und bringen Seelen aus fernen Reichen.", sky: "#1a100a", floor: "#5a3a12" },
+  { id: "moon", name: "Blutmond", plural: "Blutmonde", sprite: "moon", cost: 1e12, sps: 1e7,
+    desc: "Unter rotem Mondlicht erwachen die Toten der ganzen Welt.", sky: "#1d0710", floor: "#3b0a16" },
+  { id: "eye", name: "Auge des Abgrunds", plural: "Augen des Abgrunds", sprite: "eye", cost: 1.4e13, sps: 6.5e7,
+    desc: "Der Abgrund blickt zurück und zieht Seelen aus allen Welten.", sky: "#0c0614", floor: "#1d0f30" },
+];
+
+/* ---------- Verbesserungen ---------- */
+SE.TIERS = [
+  { need: 1, mult: 10, roman: "I", color: "#b0793a" },
+  { need: 5, mult: 50, roman: "II", color: "#b8b2c4" },
+  { need: 25, mult: 500, roman: "III", color: "#f8c531" },
+  { need: 50, mult: 50000, roman: "IV", color: "#e0303f" },
+  { need: 100, mult: 5e6, roman: "V", color: "#4ff0cf" },
+  { need: 150, mult: 5e8, roman: "VI", color: "#b18cff" },
+];
+
+SE.TIER_NAMES = {
+  hand: ["Geschärfte Fingerknochen", "Grabesgriff", "Schwarzmagische Sehnen", "Knöchel aus Obsidian", "Hände des Nichts", "Griff der Ewigkeit"],
+  witch: ["Eichenbesen", "Kessel aus Gusseisen", "Krötenschleim", "Mondkraut-Ernte", "Hexensabbat", "Uralter Zirkel"],
+  graveyard: ["Frische Erde", "Rostige Spaten", "Totenglocke", "Ewiger Nebel", "Unruhige Gräber", "Totenacker der Ahnen"],
+  crypt: ["Schwere Steinplatten", "Ewige Fackeln", "Knochenkammern", "Mumifizierte Wächter", "Gewölbe der Stille", "Sarkophag der Urahnen"],
+  tower: ["Verbotene Folianten", "Schädelleuchter", "Seelenspiegel", "Turm aus Knochen", "Zirkel der Nekromanten", "Spitze des Wahnsinns"],
+  altar: ["Opferdolche", "Kerzen aus Talg", "Blutrunen", "Ewige Flamme", "Hohepriesterin", "Altar der tausend Opfer"],
+  demon: ["Höllenweihrauch", "Dämonenglocken", "Infernale Gebete", "Schwefelorgeln", "Segen der Erzdämonen", "Thron des Höllenfürsten"],
+  lich: ["Polierte Phylakterien", "Knochenkronen", "Untote Leibgarde", "Seelengefängnis", "Unsterbliche Bürokratie", "Kaiser der Toten"],
+  portal: ["Stabilisierte Risse", "Schwefeldampf", "Höllenhunde-Zucht", "Feuer der Unterwelt", "Dimensionsriss", "Die neun Kreise"],
+  egg: ["Warmes Nest", "Lavabrut", "Drachenschuppen", "Feuerodem", "Drachenmutter", "Uralter Wyrm"],
+  moon: ["Rote Linsen", "Mondfinsternis", "Gezeiten aus Blut", "Werwolf-Rudel", "Mond der Wahnsinnigen", "Ewige Mondnacht"],
+  eye: ["Wimpern der Finsternis", "Blick ins Nichts", "Flüstern der Leere", "Augen hinter den Sternen", "Das Allsehende", "Der Blick, der Welten frisst"],
+};
+
+// Farbvarianten für Waffen- und Trank-Symbole
+const bladePal = (edge, light, guard) => ({ W: light, w: edge, y: guard });
+const potionPal = (dark, mid, light) => ({ r: dark, R: mid, L: light });
+
+SE.UPGRADES = [];
+
+SE.BUILDINGS.forEach((b) => {
+  SE.TIERS.forEach((t, i) => {
+    const clickToo = b.id === "hand" && i < 3;
+    SE.UPGRADES.push({
+      id: `${b.id}-${i + 1}`,
+      name: SE.TIER_NAMES[b.id][i],
+      desc: `${b.plural} sind doppelt so stark.` + (clickToo ? " Dein Klick ebenfalls." : ""),
+      cost: b.cost * t.mult,
+      icon: { sprite: b.sprite, frame: t.color, badge: t.roman },
+      unlock: (st) => st.buildings[b.id] >= t.need,
+      need: `${t.need} × ${t.need === 1 ? b.name : b.plural}`,
+      effects: clickToo ? [{ type: "bmult", b: b.id, x: 2 }, { type: "cmult", x: 2 }] : [{ type: "bmult", b: b.id, x: 2 }],
+    });
+  });
+});
+
+[
+  ["Tausend Knochenfinger", 25, 1e5, 0.1, "Knochenhände und dein Klick erhalten +0,1 Seelen für jedes andere Gebäude."],
+  ["Millionen Knochenfinger", 50, 1e7, 5, "Der Bonus der Knochenfinger wird verfünffacht."],
+  ["Milliarden Knochenfinger", 100, 1e9, 10, "Der Bonus der Knochenfinger wird verzehnfacht."],
+].forEach(([name, need, cost, x, desc], i) => {
+  SE.UPGRADES.push({
+    id: `finger-${i + 1}`, name, desc, cost,
+    icon: { sprite: "hand", pal: { W: "#fff2a8", w: "#f8c531", x: "#a8741a" }, key: "gold", frame: "#f8c531" },
+    unlock: (st) => st.buildings.hand >= need,
+    need: `${need} Knochenhände`,
+    effects: [i === 0 ? { type: "finger", x } : { type: "fingermult", x }],
+  });
+});
+
+[
+  ["Rostiger Dolch", 1e3, 5e4, bladePal("#8a5a32", "#c08850", "#6b4a2a")],
+  ["Silberne Sichel", 1e5, 5e6, bladePal("#b8b2c4", "#ffffff", "#8a809a")],
+  ["Runenklinge", 1e7, 5e8, bladePal("#22a596", "#4ff0cf", "#f8c531")],
+  ["Seelenschnitter", 1e9, 5e10, bladePal("#6d34a8", "#b18cff", "#f8c531")],
+  ["Klinge der Leere", 1e11, 5e12, bladePal("#231a2c", "#5b5068", "#c42332")],
+  ["Hand des Todes", 1e13, 5e14, bladePal("#c42332", "#ff5a4e", "#0a0710")],
+].forEach(([name, need, cost, pal], i) => {
+  SE.UPGRADES.push({
+    id: `click-${i + 1}`, name, cost,
+    desc: "Jeder Klick erntet zusätzlich 1 % deiner Seelen pro Sekunde.",
+    icon: { sprite: "blade", pal, key: name, frame: "#d8cfbf" },
+    unlock: (st) => st.clickSouls >= need,
+    needFn: (fmt) => `${fmt(need)} Seelen durch Klicks`,
+    effects: [{ type: "clickpct", x: 0.01 }],
+  });
+});
+
+[
+  ["Rabenblut", 5e5, 0.05, potionPal("#2a0a10", "#5a1020", "#8a2030")],
+  ["Fledermausflügel", 5e6, 0.05, potionPal("#231a2c", "#3a2f45", "#8a809a")],
+  ["Spinnengift", 5e7, 0.05, potionPal("#1f4a23", "#3f8a35", "#86c84a")],
+  ["Mandragorawurzel", 5e8, 0.05, potionPal("#4a2e1c", "#7d5130", "#c08850")],
+  ["Basiliskenauge", 5e9, 0.1, potionPal("#a8741a", "#f8c531", "#fff2a8")],
+  ["Drachenblut", 5e10, 0.1, potionPal("#6e0d1c", "#c42332", "#ff5a4e")],
+  ["Phönixasche", 5e11, 0.1, potionPal("#a8400c", "#e2691c", "#f8c531")],
+  ["Sternenstaub der Leere", 5e12, 0.15, potionPal("#35184f", "#6d34a8", "#b18cff")],
+  ["Tränen eines Gottes", 5e13, 0.2, potionPal("#0f5550", "#22a596", "#4ff0cf")],
+].forEach(([name, cost, x, pal], i) => {
+  SE.UPGRADES.push({
+    id: `potion-${i + 1}`, name, cost,
+    desc: `Opfergabe: alle Seelen pro Sekunde +${Math.round(x * 100)} %.`,
+    icon: { sprite: "potion", pal, key: name, frame: "#b18cff" },
+    unlock: (st) => st.runSouls >= cost / 4,
+    needFn: (fmt) => `${fmt(cost / 4)} Seelen in diesem Leben`,
+    effects: [{ type: "gmult", x }],
+  });
+});
+
+[
+  ["Irrlicht-Köder", 3, 77777, "Irrlichter erscheinen häufiger.", { type: "wispfreq", x: 0.8 }],
+  ["Laterne der Verirrten", 7, 7777777, "Irrlichter erscheinen noch häufiger.", { type: "wispfreq", x: 0.8 }],
+  ["Ewiges Irrlicht", 27, 777777777, "Irrlicht-Effekte halten doppelt so lange, und Irrlichter bleiben länger.", { type: "wispdur", x: 2 }],
+].forEach(([name, need, cost, desc, eff], i) => {
+  SE.UPGRADES.push({
+    id: `wisp-${i + 1}`, name, desc, cost,
+    icon: { sprite: "lantern", frame: "#4ff0cf" },
+    unlock: (st) => st.wispsClicked >= need,
+    need: `${need} gefangene Irrlichter`,
+    effects: [eff],
+  });
+});
+
+/* ---------- Relikte (vom Schicksalsrad) ---------- */
+SE.RELICS = [
+  { id: "amulet", name: "Amulett des Wiedergängers", sprite: "amulet", desc: "+10 % Seelen pro Sekunde.", effect: { gmult: 0.1 } },
+  { id: "ring", name: "Ring der Gruft", sprite: "ring", desc: "Klicks ernten 50 % mehr.", effect: { cmult: 1.5 } },
+  { id: "chalice", name: "Kelch des Blutes", sprite: "chalice", desc: "Effekte von Irrlichtern halten 25 % länger.", effect: { buffdur: 1.25 } },
+  { id: "grimoire", name: "Grimoire der Toten", sprite: "grimoire", desc: "Alle Gebäude kosten 5 % weniger.", effect: { costmult: 0.95 } },
+  { id: "feather", name: "Rabenfeder", sprite: "feather", desc: "Irrlichter erscheinen 20 % häufiger.", effect: { wispfreq: 0.8 } },
+  { id: "dice", name: "Knochenwürfel", sprite: "dice", desc: "Seelen vom Schicksalsrad +50 %.", effect: { wheel: 1.5 } },
+  { id: "crown", name: "Krone des Lichkönigs", sprite: "crown", desc: "+15 % Seelen pro Sekunde.", effect: { gmult: 0.15 } },
+  { id: "orb", name: "Kugel der Seherin", sprite: "orb", desc: "Während du fort bist, ernten deine Diener voll statt halb.", effect: { offline: 1 } },
+];
+
+/* ---------- Schicksalsrad ---------- */
+// weight: Anteil in Prozent; die Größe der Felder entspricht der Chance.
+SE.WHEEL = [
+  { id: "bag", name: "Seelenbeutel", short: "15 Min.", sprite: "bag", weight: 24, color: "#3a2f45",
+    desc: "Seelen für 15 Minuten Produktion." },
+  { id: "bloodmoon", name: "Blutmond", short: "×5", sprite: "moon", weight: 14, color: "#6e0d1c",
+    desc: "5 Minuten lang fünffache Seelen pro Sekunde." },
+  { id: "chest", name: "Seelentruhe", short: "1 Std.", sprite: "chest", weight: 16, color: "#4a2e1c",
+    desc: "Seelen für eine Stunde Produktion." },
+  { id: "fist", name: "Höllenfaust", short: "Klick ×77", sprite: "hand", pal: { W: "#ff8a7e", w: "#e0303f", x: "#6e0d1c" }, weight: 12, color: "#5a1a0e",
+    desc: "60 Sekunden lang ernten Klicks das 77-Fache." },
+  { id: "coffin", name: "Grabbeigaben", short: "+3", sprite: "coffin", weight: 12, color: "#2a1640",
+    desc: "3 Exemplare deines stärksten Gebäudes gratis." },
+  { id: "swarm", name: "Irrlicht-Schwarm", short: "3×", sprite: "wisp", weight: 10, color: "#0f3a38",
+    desc: "Drei Irrlichter erscheinen sofort." },
+  { id: "relic", name: "Relikt", short: "Relikt", sprite: "amulet", weight: 8, color: "#35184f",
+    desc: "Ein zufälliges Relikt mit dauerhafter Wirkung." },
+  { id: "hoard", name: "Drachenschatz", short: "4 Std.", sprite: "chest", pal: { B: "#f8c531", b: "#a8741a", y: "#fff2a8" }, weight: 4, color: "#7a5a0c",
+    desc: "Der Hauptgewinn: Seelen für vier Stunden Produktion." },
+];
+
+/* ---------- Trophäen ---------- */
+SE.ACHIEVEMENTS = [];
+const ach = (id, name, desc, icon, check, extra = {}) => SE.ACHIEVEMENTS.push({ id, name, desc, icon, check, ...extra });
+
+[
+  [1, "Erste Seele"], [100, "Grabräuber"], [1e3, "Seelenfänger"], [1e4, "Leichenfledderer"],
+  [1e5, "Totengräber"], [1e6, "Nekromant"], [1e7, "Seelenhändler"], [1e8, "Herr der Gräber"],
+  [1e9, "Schattenfürst"], [1e10, "Fürst der Verdammten"], [1e11, "Der bleiche König"], [1e12, "Lichkönig"],
+  [1e13, "Weltenverschlinger"], [1e15, "Ewige Nacht"], [1e18, "Das Ende aller Tage"],
+].forEach(([n, name], i) =>
+  ach(`souls-${i}`, name, (fmt) => `Ernte insgesamt ${fmt(n)} ${n === 1 ? "Seele" : "Seelen"}.`, { sprite: "soul" },
+    (st) => st.allTimeSouls >= n));
+
+[
+  [1, "Ein Flüstern im Dunkeln"], [10, "Leises Wehklagen"], [100, "Chor der Verdammten"], [1e3, "Totentanz"],
+  [1e4, "Seelensturm"], [1e5, "Mahlstrom der Seelen"], [1e6, "Ewige Prozession"], [1e7, "Der Fluss Styx"],
+  [1e8, "Ozean der Seelen"], [1e9, "Die unendliche Ernte"],
+].forEach(([n, name], i) =>
+  ach(`sps-${i}`, name, (fmt) => `Erreiche ${fmt(n)} Seelen pro Sekunde.`, { sprite: "hourglass" },
+    (st, g) => g.baseSps >= n));
+
+[
+  [1, "Erstes Klopfen"], [100, "Fingerknöchel"], [1000, "Knochenbrecher"], [5000, "Blutige Finger"], [25000, "Raserei ohne Ende"],
+].forEach(([n, name], i) =>
+  ach(`clicks-${i}`, name, (fmt) => `Klicke ${fmt(n)}-mal auf den Schädel.`, { sprite: "skull", small: true },
+    (st) => st.clicks >= n));
+
+[
+  [1e3, "Handarbeit"], [1e5, "Schnitter"], [1e7, "Sensenmann"], [1e9, "Hand des Todes"],
+].forEach(([n, name], i) =>
+  ach(`clicksouls-${i}`, name, (fmt) => `Ernte ${fmt(n)} Seelen durch Klicks.`, { sprite: "blade" },
+    (st) => st.clickSouls >= n));
+
+const BUILDING_ACH = {
+  hand: ["Aus dem Grab", "Hände hoch", "Hundert helfende Hände"],
+  witch: ["Die erste Hexe", "Hexenzirkel", "Walpurgisnacht"],
+  graveyard: ["Ruhe sanft", "Totenacker", "Stadt der Toten"],
+  crypt: ["Unter der Erde", "Katakomben", "Ewige Gruft"],
+  tower: ["Turm der Schatten", "Dunkle Akademie", "Spitze der Verderbnis"],
+  altar: ["Erstes Opfer", "Blutströme", "Rotes Meer"],
+  demon: ["Dämonenpakt", "Höllischer Klerus", "Kathedrale der Hölle"],
+  lich: ["Phylakterium", "Untote Aristokratie", "Ewige Herrschaft"],
+  portal: ["Das Tor öffnet sich", "Höllenschlund", "Die Hölle ist leer"],
+  egg: ["Brutpflege", "Drachennest", "Mutter der Drachen"],
+  moon: ["Rote Nacht", "Rote Gezeiten", "Der Himmel blutet"],
+  eye: ["Der Abgrund blickt zurück", "Tausend Augen", "Allsehend"],
+};
+SE.BUILDINGS.forEach((b) => {
+  [1, 50, 100].forEach((n, i) =>
+    ach(`b-${b.id}-${n}`, BUILDING_ACH[b.id][i],
+      () => (n === 1 ? `Besitze ${b.name === "Hexe" ? "eine Hexe" : "1 × " + b.name}.` : `Besitze ${n} ${b.plural}.`),
+      { sprite: b.sprite }, (st) => st.buildings[b.id] >= n));
+});
+
+[
+  [50, "Grundstein der Finsternis"], [200, "Dunkles Fürstentum"], [500, "Imperium der Nacht"], [1000, "Herrscher der Schatten"],
+].forEach(([n, name], i) =>
+  ach(`total-${i}`, name, () => `Besitze insgesamt ${n} Gebäude.`, { sprite: "crypt" },
+    (st, g) => g.totalBuildings >= n));
+
+[
+  [1, "Gefangenes Licht"], [7, "Sieben Lichter"], [27, "Lichtfänger"], [77, "Herr der Irrlichter"],
+].forEach(([n, name], i) =>
+  ach(`wisp-${i}`, name, () => (n === 1 ? "Fange ein Irrlicht." : `Fange ${n} Irrlichter.`), { sprite: "wisp" },
+    (st) => st.wispsClicked >= n));
+
+[
+  [10, "Verbotenes Wissen"], [30, "Arkane Studien"], [60, "Meister der dunklen Künste"],
+].forEach(([n, name], i) =>
+  ach(`upg-${i}`, name, () => `Kaufe ${n} Verbesserungen.`, { sprite: "grimoire" },
+    (st) => st.upgrades.length >= n));
+
+ach("wheel-1", "Rad des Schicksals", () => "Drehe zum ersten Mal am Schicksalsrad.", { sprite: "pointer" }, (st) => st.wheel.spins >= 1);
+ach("wheel-10", "Liebling der Nornen", () => "Drehe 10-mal am Schicksalsrad.", { sprite: "pointer" }, (st) => st.wheel.spins >= 10);
+ach("wheel-streak", "Wochenpakt", () => "Drehe an 7 Tagen hintereinander.", { sprite: "hourglass" }, (st) => st.wheel.bestStreak >= 7);
+ach("wheel-hoard", "Drachengold", () => "Gewinne den Drachenschatz.", { sprite: "chest", pal: SE.WHEEL[7].pal, key: "gold" }, (st) => st.wheel.hoards >= 1);
+
+ach("relic-1", "Reliktjäger", () => "Besitze ein Relikt.", { sprite: "amulet" }, (st) => st.relics.length >= 1);
+ach("relic-all", "Kurator des Grauens", () => "Besitze alle Relikte.", { sprite: "crown" }, (st) => st.relics.length >= SE.RELICS.length);
+
+ach("ritual-1", "Wiedergeburt", () => "Vollziehe das Ritual der Wiedergeburt.", { sprite: "orb" }, (st) => st.rituals >= 1);
+ach("ritual-5", "Ewiger Kreislauf", () => "Vollziehe das Ritual fünfmal.", { sprite: "orb" }, (st) => st.rituals >= 5);
+
+ach("sell", "Verrat", () => "Verkaufe ein Gebäude.", { sprite: "coffin" }, (st) => st.sold >= 1);
+ach("bank", "Seelenhort", () => "Besitze eine Million Seelen gleichzeitig.", { sprite: "bag" }, (st) => st.souls >= 1e6);
+ach("all", "Vollständiges Pantheon", () => "Besitze mindestens eins von jedem Gebäude.", { sprite: "lich" },
+  (st) => SE.BUILDINGS.every((b) => st.buildings[b.id] >= 1));
+ach("thirteen", "Dreizehn", () => "Besitze genau 13 Hexen.", { sprite: "witch" }, (st) => st.buildings.witch === 13, { hidden: true });
+ach("midnight", "Geisterstunde", () => "Spiele zwischen Mitternacht und ein Uhr.", { sprite: "moon" },
+  () => new Date().getHours() === 0, { hidden: true });
+ach("frenzy", "Doppelter Blutdurst", () => "Habe Blutrausch und Blutmond gleichzeitig.", { sprite: "potion" },
+  (st) => !!(st.buffs.frenzy && st.buffs.bloodmoon), { hidden: true });
+ach("speed", "Wahnsinn", () => "Klicke 12-mal in einer Sekunde.", { sprite: "demon" }, (st, g) => g.clickBurst >= 12, { hidden: true });
+
+/* ---------- Chronik ---------- */
+const has = (id, n = 1) => (st) => st.buildings[id] >= n;
+SE.NEWS = [
+  { t: "Der Herold verkündet: Die Nacht ist jung, und die Seelen sind willig." },
+  { t: "Ein Rabe krächzt dreimal. Niemand weiß, was es bedeutet." },
+  { t: "Wetterbericht: Nebel, später Nebel. Gegen Abend dichter Nebel." },
+  { t: "Dorfbewohner berichten von einem Schädel, der leuchtet, wenn man ihn berührt." },
+  { t: "Gelehrte streiten, ob eine Seele etwas wiegt. Erste Messungen ergeben 21 Gramm." },
+  { t: "Ein Barde singt ein Lied über dich. Man hat ihn seitdem nicht mehr gesehen." },
+  { t: "Die Nornen drehen ihr Rad nur einmal am Tag. Mehr erlaubt ihre Zunft nicht." },
+  { t: "Irrlichter gesichtet. Wer ihnen folgt, wird reich oder landet im Sumpf." },
+  { t: "Totengräber fordern einen Feiertag. Die Toten sind dagegen." },
+  { t: "Ein Wanderer fragt nach dem Weg ins Licht. Man lacht ihn aus." },
+  { t: "Friedhofswärter klagt: „Die Hände winken mir jeden Morgen zu.“", if: has("hand") },
+  { t: "Handschuhmacher melden Rekordumsätze in der Größe „Skelett“.", if: has("hand", 10) },
+  { t: "Besenverleih meldet Engpässe. Die Wartezeit beträgt drei Vollmonde.", if: has("witch") },
+  { t: "Eine Hexe verflucht einen Steuereintreiber. Das Dorf feiert drei Tage lang.", if: has("witch", 5) },
+  { t: "Grabsteinpreise steigen. Steinmetze kommen mit dem Meißeln kaum nach.", if: has("graveyard") },
+  { t: "Archäologen öffnen eine Gruft. Kurz darauf öffnet die Gruft die Archäologen.", if: has("crypt") },
+  { t: "Nekromantenturm sucht Lehrlinge. Voraussetzung: kein Puls.", if: has("tower") },
+  { t: "Der Blutspendedienst beschwert sich über unlautere Konkurrenz.", if: has("altar") },
+  { t: "Dämonen fordern die Fünf-Tage-Woche. Der Höllenfürst lacht sehr lange.", if: has("demon") },
+  { t: "Ein Lich verlegt sein Phylakterium und findet es unter dem Sofa wieder.", if: has("lich") },
+  { t: "Anwohner der Höllenportale klagen über Schwefelgeruch und Lärm.", if: has("portal") },
+  { t: "Ein Drachenjunges schlüpft. Seine ersten Worte: „Mehr Seelen.“", if: has("egg") },
+  { t: "Werwölfe melden Überstunden. Der Mond ist inzwischen dauerhaft voll.", if: has("moon") },
+  { t: "Der Abgrund blickt zurück. Er wirkt ein wenig enttäuscht.", if: has("eye") },
+  { t: "Priester warnen: Für den Himmel bleiben kaum noch Seelen übrig.", if: (st, g) => g.baseSps >= 1000 },
+  { t: "Das Totenreich ist überfüllt. Charon verlangt jetzt Eintritt.", if: (st, g) => g.baseSps >= 1e5 },
+  { t: "Selbst die Götter fragen inzwischen, wer du eigentlich bist.", if: (st, g) => g.baseSps >= 1e8 },
+  { t: "Eine Seele bittet um Rückgabe. Antrag abgelehnt.", if: (st) => st.allTimeSouls >= 1e4 },
+  { t: "In den Tavernen spricht man nur noch flüsternd von dir.", if: (st) => st.allTimeSouls >= 1e6 },
+  { t: "Kartografen zeichnen dein Reich als großen schwarzen Fleck.", if: (st, g) => g.totalBuildings >= 100 },
+  { t: "Ein Relikt flüstert nachts deinen Namen. Es klingt zufrieden.", if: (st) => st.relics.length >= 1 },
+];
+</script>
+<script>
+/* ===== Spiellogik und Oberfläche ===== */
+/* Seelenernte – Spiellogik und Oberfläche */
+"use strict";
+
+(function () {
+  const { BUILDINGS, UPGRADES, ACHIEVEMENTS, RELICS, WHEEL, NEWS } = SE;
+  const BLD = Object.fromEntries(BUILDINGS.map((b) => [b.id, b]));
+  const UPG = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
+  const RELIC = Object.fromEntries(RELICS.map((r) => [r.id, r]));
+  const ACH = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));
+
+  const SAVE_KEY = "seelenernte-v1";
+  const TWO_PI = Math.PI * 2;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const $ = (id) => document.getElementById(id);
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const mod = (a, n) => ((a % n) + n) % n;
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  /* ---------- Grafiken ---------- */
+  const canvasCache = {};
+  function spriteCanvas(name, pal, key) {
+    const k = name + "|" + (key || "");
+    return canvasCache[k] || (canvasCache[k] = SE.spriteCanvas(name, { pal }));
+  }
+  function iconURL(icon) {
+    const key = icon.key || (icon.pal && typeof icon.pal === "object" ? JSON.stringify(icon.pal) : "");
+    return SE.spriteURL(icon.sprite, { pal: icon.pal, key });
+  }
+  const shadowURL = (name) => SE.spriteURL(name, { pal: SE.PAL.shadow(), key: "shadow" });
+  const imgTag = (src, cls = "") => `<img${cls ? ` class="${cls}"` : ""} src="${src}" alt="">`;
+  const SOUL_URL = () => SE.spriteURL("soul");
+  const RED_HAND = { W: "#ff8a7e", w: "#e0303f", x: "#6e0d1c" };
+
+  /* ---------- Zahlen und Zeiten ---------- */
+  const BIG = [
+    [1e6, "Millionen", "Mio."],
+    [1e9, "Milliarden", "Mrd."],
+    [1e12, "Billionen", "Bio."],
+    [1e15, "Billiarden", "Brd."],
+    [1e18, "Trillionen", "Trio."],
+    [1e21, "Trilliarden", "Trd."],
+    [1e24, "Quadrillionen", "Quadr."],
+    [1e27, "Quadrilliarden", "Qd."],
+    [1e30, "Quintillionen", "Quint."],
+    [1e33, "Quintilliarden", "Qid."],
+  ];
+  const NF = [0, 1, 2, 3].map((d) => new Intl.NumberFormat("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: d }));
+  const NF3 = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+  // long: "1,234 Millionen" · sonst "1,23 Mio." · dec: Nachkommastelle unter 100 (für Seelen pro Sekunde)
+  function fmt(n, opt = {}) {
+    if (!isFinite(n)) return "unendlich";
+    if (n < 0) return "−" + fmt(-n, opt);
+    if (n < 1e6) {
+      if (opt.dec && n < 100) return NF[1].format(Math.floor(n * 10) / 10);
+      return NF[0].format(Math.floor(n));
+    }
+    if (n >= BIG[BIG.length - 1][0] * 1000) return n.toExponential(3).replace(".", ",");
+    let i = BIG.length - 1;
+    while (i > 0 && n < BIG[i][0]) i--;
+    const v = n / BIG[i][0];
+    if (opt.long) return NF3.format(Math.floor(v * 1000) / 1000) + " " + BIG[i][1];
+    const d = v < 10 ? 2 : v < 100 ? 1 : 0;
+    return NF[d].format(Math.floor(v * 10 ** d) / 10 ** d) + " " + BIG[i][2];
+  }
+  const fmtPct = (x) => NF[1].format(x * 100) + " %";
+
+  function fmtDuration(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    if (d) return `${d} ${d === 1 ? "Tag" : "Tage"} ${h} Std.`;
+    if (h) return `${h} Std. ${m} Min.`;
+    if (m) return `${m} Min. ${s} Sek.`;
+    return `${s} Sek.`;
+  }
+  const fmtClock = (sec) => {
+    sec = Math.max(0, Math.floor(sec));
+    return [Math.floor(sec / 3600), Math.floor((sec % 3600) / 60), sec % 60].map((v) => String(v).padStart(2, "0")).join(":");
+  };
+  const fmtDate = (ms) => new Date(ms).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
+
+  const dayKey = (d = new Date()) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const yesterdayKey = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return dayKey(d);
+  };
+  const secondsToMidnight = () => {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return (next - now) / 1000;
+  };
+
+  /* ---------- Spielstand ---------- */
+  function freshState() {
+    const now = Date.now();
+    return {
+      v: 1,
+      souls: 0,
+      runSouls: 0,
+      allTimeSouls: 0,
+      clicks: 0,
+      clickSouls: 0,
+      buildings: Object.fromEntries(BUILDINGS.map((b) => [b.id, 0])),
+      seen: {},
+      upgrades: [],
+      upSeen: [],
+      achievements: [],
+      wispsClicked: 0,
+      buffs: {},
+      relics: [],
+      essence: 0,
+      rituals: 0,
+      sold: 0,
+      wheel: { last: null, streak: 0, bestStreak: 0, spins: 0, hoards: 0, pending: null, lastResult: null },
+      settings: { sound: true, particles: !reduceMotion },
+      hints: {},
+      started: now,
+      runStarted: now,
+      playTime: 0,
+      lastSave: now,
+    };
+  }
+
+  function mergeState(data) {
+    const base = freshState();
+    if (!data || typeof data !== "object") return base;
+    const out = { ...base };
+    for (const k of Object.keys(base)) {
+      if (typeof base[k] === "number" && typeof data[k] === "number" && isFinite(data[k])) out[k] = data[k];
+    }
+    for (const k of ["upgrades", "upSeen", "achievements", "relics"]) {
+      if (Array.isArray(data[k])) out[k] = [...new Set(data[k].filter((id) => typeof id === "string"))];
+    }
+    for (const b of BUILDINGS) {
+      const n = data.buildings && data.buildings[b.id];
+      out.buildings[b.id] = Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+    }
+    if (data.seen && typeof data.seen === "object") out.seen = { ...data.seen };
+    if (data.buffs && typeof data.buffs === "object") out.buffs = { ...data.buffs };
+    if (data.hints && typeof data.hints === "object") out.hints = { ...data.hints };
+    if (data.wheel && typeof data.wheel === "object") out.wheel = { ...base.wheel, ...data.wheel };
+    if (data.settings && typeof data.settings === "object") out.settings = { ...base.settings, ...data.settings };
+    out.upgrades = out.upgrades.filter((id) => UPG[id]);
+    out.achievements = out.achievements.filter((id) => ACH[id]);
+    out.relics = out.relics.filter((id) => RELIC[id]);
+    return out;
+  }
+
+  let st = freshState();
+  let owned = new Set();
+  let won = new Set();
+  function syncSets() {
+    owned = new Set(st.upgrades);
+    won = new Set(st.achievements);
+  }
+
+  function loadLocal() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+  function save(note) {
+    st.lastSave = Date.now();
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(st));
+      if (note) setNote("Gespeichert um " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr.");
+      return true;
+    } catch {
+      if (note) setNote("Speichern ist in diesem Browser nicht möglich. Exportiere deinen Spielstand, um ihn zu sichern.");
+      return false;
+    }
+  }
+  function setNote(text) {
+    $("saveNote").textContent = text;
+  }
+
+  /* ---------- Effekte ---------- */
+  const BUFFS = {
+    frenzy: { name: "Blutrausch", icon: { sprite: "potion" }, sps: 7, text: "Seelen/s ×7", color: "#ff5a4e" },
+    claw: { name: "Dämonenklaue", icon: { sprite: "demon" }, click: 777, text: "Klicks ×777", color: "#f8c531" },
+    bloodmoon: { name: "Blutmond", icon: { sprite: "moon" }, sps: 5, text: "Seelen/s ×5", color: "#e0303f" },
+    fist: { name: "Höllenfaust", icon: { sprite: "hand", pal: RED_HAND, key: "red" }, click: 77, text: "Klicks ×77", color: "#e2691c" },
+  };
+
+  function addBuff(id, seconds) {
+    st.buffs[id] = { until: Date.now() + seconds * 1000, dur: seconds * 1000 };
+    recalc();
+    renderBuffs();
+    checkAchievements();
+  }
+
+  /* ---------- Berechnung ---------- */
+  const G = {
+    each: {}, bSps: {}, baseSps: 0, sps: 0, buffSps: 1, buffClick: 1, click: 1, clickNoBuff: 1,
+    globalMult: 1, costMult: 1, wispFreq: 1, wispDur: 1, buffDur: 1, wheelMult: 1, offline: 0.5,
+    totalBuildings: 0, clickBurst: 0,
+  };
+
+  function recalc() {
+    const bm = Object.fromEntries(BUILDINGS.map((b) => [b.id, 1]));
+    let cmult = 1, clickPct = 0, finger = 0, fingerMult = 1, gUp = 0, wispFreq = 1, wispDur = 1;
+    for (const id of st.upgrades) {
+      for (const e of UPG[id].effects) {
+        if (e.type === "bmult") bm[e.b] *= e.x;
+        else if (e.type === "cmult") cmult *= e.x;
+        else if (e.type === "clickpct") clickPct += e.x;
+        else if (e.type === "finger") finger += e.x;
+        else if (e.type === "fingermult") fingerMult *= e.x;
+        else if (e.type === "gmult") gUp += e.x;
+        else if (e.type === "wispfreq") wispFreq *= e.x;
+        else if (e.type === "wispdur") wispDur *= e.x;
+      }
+    }
+    let gRelic = 0, relicClick = 1, buffDur = 1, costMult = 1, wheelMult = 1, offline = 0.5;
+    for (const id of st.relics) {
+      const e = RELIC[id].effect;
+      if (e.gmult) gRelic += e.gmult;
+      if (e.cmult) relicClick *= e.cmult;
+      if (e.buffdur) buffDur *= e.buffdur;
+      if (e.costmult) costMult *= e.costmult;
+      if (e.wispfreq) wispFreq *= e.wispfreq;
+      if (e.wheel) wheelMult *= e.wheel;
+      if (e.offline) offline = e.offline;
+    }
+
+    let total = 0;
+    for (const b of BUILDINGS) total += st.buildings[b.id];
+    const fingerBonus = finger * fingerMult * (total - st.buildings.hand);
+
+    G.globalMult = (1 + gUp + gRelic) * (1 + 0.01 * st.achievements.length) * (1 + 0.01 * st.essence);
+    let base = 0;
+    for (const b of BUILDINGS) {
+      const each = (b.sps + (b.id === "hand" ? fingerBonus : 0)) * bm[b.id] * G.globalMult;
+      G.each[b.id] = each;
+      G.bSps[b.id] = each * st.buildings[b.id];
+      base += G.bSps[b.id];
+    }
+    G.baseSps = base;
+
+    let bs = 1, bc = 1;
+    for (const id of Object.keys(st.buffs)) {
+      const def = BUFFS[id];
+      if (!def) continue;
+      if (def.sps) bs *= def.sps;
+      if (def.click) bc *= def.click;
+    }
+    G.buffSps = bs;
+    G.buffClick = bc;
+    G.sps = base * bs;
+    const clickBase = (1 + fingerBonus) * cmult;
+    G.clickNoBuff = (clickBase + clickPct * base) * relicClick;
+    G.click = (clickBase + clickPct * G.sps) * relicClick * bc;
+
+    G.totalBuildings = total;
+    G.costMult = costMult;
+    G.wispFreq = wispFreq;
+    G.wispDur = wispDur;
+    G.buffDur = buffDur;
+    G.wheelMult = wheelMult;
+    G.offline = offline;
+  }
+
+  function earn(n) {
+    st.souls += n;
+    st.runSouls += n;
+    st.allTimeSouls += n;
+  }
+
+  function priceOf(b, have, k) {
+    return Math.ceil(b.cost * G.costMult * Math.pow(1.15, have) * (Math.pow(1.15, k) - 1) / 0.15);
+  }
+  function sellValue(b, have, k) {
+    k = Math.min(k, have);
+    if (k <= 0) return 0;
+    return Math.floor(0.25 * b.cost * G.costMult * Math.pow(1.15, have - k) * (Math.pow(1.15, k) - 1) / 0.15);
+  }
+  const essenceFor = (souls) => Math.floor(Math.cbrt(souls / 1e12));
+
+  /* ---------- Klänge (8 Bit) ---------- */
+  const Sfx = (() => {
+    let ac = null, out = null, lastTick = 0;
+    function ctx() {
+      if (!st.settings.sound) return null;
+      try {
+        if (!ac) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          ac = new AC();
+          out = ac.createGain();
+          out.gain.value = 0.06;
+          out.connect(ac.destination);
+        }
+        if (ac.state === "suspended") ac.resume();
+        return ac;
+      } catch {
+        return null;
+      }
+    }
+    function note(freq, at, dur, { type = "square", vol = 1, to = 0 } = {}) {
+      const a = ctx();
+      if (!a) return;
+      const t = a.currentTime + at;
+      const o = a.createOscillator();
+      const g = a.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g);
+      g.connect(out);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    }
+    const seq = (notes, step, dur, opt) => notes.forEach((f, i) => note(f, i * step, dur, opt));
+    return {
+      click: () => note(rand(500, 580), 0, 0.06, { to: 240, vol: 0.7 }),
+      buy: () => { note(988, 0, 0.07); note(1319, 0.07, 0.3); },
+      sell: () => { note(660, 0, 0.08); note(440, 0.08, 0.16); },
+      deny: () => note(130, 0, 0.16, { type: "sawtooth", vol: 0.5 }),
+      ach: () => seq([523, 659, 784, 1047], 0.08, 0.16),
+      wisp: () => { note(880, 0, 0.3, { type: "triangle", to: 1320, vol: 0.6 }); note(1320, 0.18, 0.3, { type: "triangle", to: 880, vol: 0.4 }); },
+      catch: () => seq([392, 523, 659, 784, 1047, 1319], 0.05, 0.12),
+      tick: () => {
+        const now = performance.now();
+        if (now - lastTick < 45) return;
+        lastTick = now;
+        note(1700, 0, 0.025, { vol: 0.35 });
+      },
+      win: () => seq([523, 523, 523, 784, 698, 880, 1047], 0.11, 0.2),
+      ritual: () => seq([196, 185, 175, 165, 98], 0.18, 0.45, { type: "triangle" }),
+    };
+  })();
+
+  /* ---------- Szene am Altar ---------- */
+  const EYES = {
+    hover: [{ C: "#8affe6", e: "#ffffff" }, "hover"],
+    flash: [{ C: "#ffffff", e: "#ffffff" }, "flash"],
+    red: [{ C: "#c42332", e: "#ff5a4e" }, "red"],
+    gold: [{ C: "#f8c531", e: "#fff2a8" }, "gold"],
+  };
+
+  const Scene = {
+    S: 4, W: 0, H: 0, bg: null, cx: 0, skullX: 0, skullY: 0, groundY: 0, pedTop: 0, horizon: 0,
+    stars: [], souls: [], parts: [], braziers: [], flames: [], flameAt: 0, rings: {},
+    bumpUntil: 0, flashUntil: 0, hover: false, soulAcc: 0,
+
+    init() {
+      this.canvas = $("scene");
+      this.ctx = this.canvas.getContext("2d");
+    },
+
+    resize() {
+      const sec = $("altar");
+      const cw = sec.clientWidth, ch = sec.clientHeight;
+      if (!cw || !ch) return;
+      const S = clamp(Math.floor(Math.min(cw / 64, ch / 84)), 3, 7);
+      const W = Math.ceil(cw / S), H = Math.ceil(ch / S);
+      Object.assign(this, { S, W, H });
+      const c = this.canvas;
+      c.width = W;
+      c.height = H;
+      c.style.width = W * S + "px";
+      c.style.height = H * S + "px";
+      this.offX = Math.floor((cw - W * S) / 2);
+      this.offY = ch - H * S;
+      c.style.left = this.offX + "px";
+
+      const hud = $("hud");
+      const hudBottom = Math.ceil((hud.offsetTop + hud.offsetHeight - this.offY) / S);
+      this.hudBottom = hudBottom;
+      this.groundY = H - 12;
+      this.pedTop = this.groundY - 10;
+      this.horizon = this.groundY - 14;
+      this.cx = Math.floor(W / 2);
+      const minY = hudBottom + 3, maxY = this.pedTop - 35;
+      this.skullY = maxY <= minY ? maxY : Math.max(Math.round((minY + maxY) / 2), maxY - 22);
+      this.skullX = this.cx - 16;
+      this.braziers = W >= 64 ? [this.cx - 23, this.cx + 22] : [];
+
+      const btn = $("skullBtn");
+      btn.style.left = this.offX + this.skullX * S + "px";
+      btn.style.top = this.offY + this.skullY * S + "px";
+      btn.style.width = btn.style.height = 32 * S + "px";
+
+      this.stars = [];
+      const n = Math.round((W * this.horizon) / 55);
+      for (let i = 0; i < n; i++) {
+        this.stars.push({
+          x: Math.floor(Math.random() * W),
+          y: Math.floor(Math.random() * (this.horizon - 6)),
+          c: Math.random() < 0.3 ? "#b18cff" : "#ece3d2",
+          tw: Math.random() < 0.35,
+          ph: Math.random() * TWO_PI,
+        });
+      }
+      this.souls = this.souls.filter((s) => s.x < W);
+      this.renderBg();
+    },
+
+    renderBg() {
+      const { W, H } = this;
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      const x = c.getContext("2d");
+      const px = (a, b, w, h, col) => { x.fillStyle = col; x.fillRect(a, b, w, h); };
+
+      // Himmel in Streifen mit Rasterübergängen
+      const bands = ["#06040b", "#0a0612", "#0f0919", "#150c22", "#1d102e"];
+      const skyH = this.horizon + 8;
+      const bh = skyH / bands.length;
+      for (let y = 0; y < skyH; y++) {
+        const f = y / bh, i = Math.min(bands.length - 1, Math.floor(f)), fr = f - i;
+        px(0, y, W, 1, bands[i]);
+        if (i + 1 < bands.length && fr > 0.68) {
+          x.fillStyle = bands[i + 1];
+          const step = fr > 0.84 ? 2 : 4;
+          for (let xx = (y % 2) * (step / 2); xx < W; xx += step) x.fillRect(xx, y, 1, 1);
+        }
+      }
+
+      // feste Sterne
+      for (const s of this.stars) if (!s.tw) px(s.x, s.y, 1, 1, s.c);
+
+      // Blutmond mit Hof
+      const mx = W - 23, my = Math.min(this.hudBottom + 3, this.horizon - 30);
+      x.fillStyle = "#2a0812";
+      for (let j = -12; j <= 12; j++) {
+        for (let i = -12; i <= 12; i++) {
+          const d = Math.hypot(i, j);
+          if (d > 9.5 && d < 12 && (i + j) % 2 === 0) x.fillRect(mx + 8 + i, my + 8 + j, 1, 1);
+        }
+      }
+      x.drawImage(spriteCanvas("moon"), mx, my);
+
+      // Burg in der Ferne
+      const castle = "#120a1c";
+      const by = this.horizon + 3, bx = 3;
+      const roof = (cx, top, half) => { for (let r = 0; r <= half; r++) px(cx - r, top + r, r * 2 + 1, 1, castle); };
+      px(bx, by - 8, 22, 8, castle);
+      for (let i = 0; i < 22; i += 3) px(bx + i, by - 10, 2, 2, castle);
+      px(bx, by - 16, 5, 16, castle);
+      roof(bx + 2, by - 20, 3);
+      px(bx + 8, by - 22, 7, 22, castle);
+      roof(bx + 11, by - 27, 4);
+      px(bx + 17, by - 13, 5, 13, castle);
+      roof(bx + 19, by - 16, 3);
+      px(bx + 2, by - 12, 1, 2, "#e2a01c");
+      px(bx + 11, by - 18, 1, 2, "#e2a01c");
+      px(bx + 10, by - 12, 1, 1, "#a8741a");
+      px(bx + 19, by - 9, 1, 1, "#e2a01c");
+
+      // toter Baum
+      const tree = "#140c1e", tx = W - 12, ty = this.horizon + 4;
+      px(tx, ty - 16, 2, 16, tree);
+      px(tx - 1, ty - 1, 4, 1, tree);
+      [[-1, -11], [-2, -12], [-3, -13], [-4, -13], [2, -9], [3, -10], [4, -11], [5, -11], [2, -14], [3, -15], [-1, -17], [-2, -18], [1, -18]]
+        .forEach(([a, b]) => px(tx + a, ty + b, 1, 1, tree));
+
+      // Hügel mit Grabsteinen
+      for (let xx = 0; xx < W; xx++) {
+        const h = Math.round(5 + 3 * Math.sin(xx * 0.13) + 2 * Math.sin(xx * 0.29 + 1.3));
+        px(xx, this.groundY - h - 2, 1, h + 2, "#1a1027");
+        px(xx, this.groundY - h - 2, 1, 1, "#2a1a3c");
+      }
+      const stone = "#2e1f42";
+      for (const gx of [Math.round(W * 0.12), Math.round(W * 0.31), Math.round(W * 0.7), Math.round(W * 0.86)]) {
+        const h = Math.round(5 + 3 * Math.sin(gx * 0.13) + 2 * Math.sin(gx * 0.29 + 1.3));
+        const gy = this.groundY - h - 2;
+        px(gx, gy - 4, 3, 4, stone);
+        px(gx + 1, gy - 5, 1, 1, stone);
+        px(gx + 1, gy - 3, 1, 1, "#1a1027");
+      }
+
+      // Boden aus Steinblöcken
+      const tile = spriteCanvas("ground");
+      for (let xx = 0; xx < W; xx += 16) x.drawImage(tile, xx, this.groundY);
+
+      // Altarsockel
+      const cx = this.cx, pt = this.pedTop, gy = this.groundY;
+      const block = (a, b, w, h, fill, hi) => {
+        px(a, b, w, h, "#0a0710");
+        px(a + 1, b + 1, w - 2, h - 2, fill);
+        if (hi) px(a + 1, b + 1, w - 2, 1, hi);
+      };
+      block(cx - 9, gy - 4, 18, 4, "#5b5068", "#8a809a");
+      block(cx - 6, pt + 2, 12, gy - 3 - (pt + 2), "#3a2f45");
+      px(cx - 5, pt + 3, 1, gy - 6 - pt, "#5b5068");
+      block(cx - 10, pt, 20, 4, "#8a809a", "#b8b0c4");
+      px(cx - 1, pt + 4, 2, 1, "#22a596");
+      px(cx - 2, pt + 5, 1, 1, "#22a596");
+      px(cx + 1, pt + 5, 1, 1, "#22a596");
+      px(cx - 1, pt + 6, 2, 1, "#4ff0cf");
+
+      // Feuerschalen
+      for (const bxp of this.braziers) {
+        px(bxp, gy - 9, 1, 9, "#2a2233");
+        px(bxp - 1, gy - 1, 3, 1, "#2a2233");
+        px(bxp - 3, gy - 11, 7, 1, "#0a0710");
+        px(bxp - 3, gy - 12, 7, 1, "#5b5068");
+        px(bxp - 2, gy - 10, 5, 1, "#3a2f45");
+      }
+      this.bg = c;
+    },
+
+    ring(color, phase) {
+      const k = color + phase;
+      if (this.rings[k]) return this.rings[k];
+      const R = 24;
+      const c = document.createElement("canvas");
+      c.width = c.height = R * 2 + 1;
+      const x = c.getContext("2d");
+      x.fillStyle = color;
+      for (let j = -R; j <= R; j++) {
+        for (let i = -R; i <= R; i++) {
+          const d = Math.hypot(i, j);
+          if (d < 17 || d > R) continue;
+          const on = d < 20.5 ? (i + j + phase) % 2 === 0 : mod(i + 2 * j + phase * 2, 4) === 0;
+          if (on) x.fillRect(i + R, j + R, 1, 1);
+        }
+      }
+      return (this.rings[k] = c);
+    },
+
+    burst(clientX, clientY) {
+      if (!st.settings.particles) return;
+      const r = this.canvas.getBoundingClientRect();
+      const ix = (clientX - r.left) / this.S, iy = (clientY - r.top) / this.S;
+      for (let i = 0; i < 9; i++) {
+        this.parts.push({
+          x: ix, y: iy, vx: rand(-28, 28), vy: rand(-48, -14), life: rand(0.35, 0.75),
+          c: pick(["#4ff0cf", "#d6fff4", "#d8cfbf", "#22a596"]),
+        });
+      }
+      if (this.parts.length > 160) this.parts.splice(0, this.parts.length - 160);
+    },
+
+    update(dt, t) {
+      // fallende Seelen, je nach Produktion
+      if (st.settings.particles && !reduceMotion && G.baseSps > 0) {
+        this.soulAcc += dt * clamp(Math.log10(G.baseSps + 1) * 0.3, 0.15, 1.5);
+        while (this.soulAcc >= 1) {
+          this.soulAcc -= 1;
+          if (this.souls.length < 14) {
+            this.souls.push({ x: rand(0, this.W - 8), y: -10, vy: rand(6, 11), ph: rand(0, TWO_PI), a: rand(0.22, 0.42) });
+          }
+        }
+      }
+      for (const s of this.souls) s.y += s.vy * dt;
+      this.souls = this.souls.filter((s) => s.y < this.groundY - 8);
+
+      for (const p of this.parts) {
+        p.vy += 110 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
+      }
+      this.parts = this.parts.filter((p) => p.life > 0);
+
+      if (t > this.flameAt) {
+        this.flameAt = t + 90;
+        this.flames = this.braziers.map(() => [rand(1, 3), rand(3, 5), rand(4, 7), rand(3, 5), rand(1, 3)].map(Math.round));
+      }
+    },
+
+    render(t) {
+      const { ctx } = this;
+      if (!this.bg) return;
+      ctx.drawImage(this.bg, 0, 0);
+
+      for (const s of this.stars) {
+        if (!s.tw) continue;
+        if (Math.sin(t / 600 + s.ph) > -0.2) {
+          ctx.fillStyle = s.c;
+          ctx.fillRect(s.x, s.y, 1, 1);
+        }
+      }
+
+      const soul = spriteCanvas("soul");
+      for (const s of this.souls) {
+        ctx.globalAlpha = s.a * clamp((s.y - this.hudBottom) / 12, 0, 1);
+        if (!ctx.globalAlpha) continue;
+        ctx.drawImage(soul, Math.round(s.x + Math.sin(t / 700 + s.ph) * 2), Math.round(s.y));
+      }
+      ctx.globalAlpha = 1;
+
+      // Flammen der Feuerschalen
+      const gy = this.groundY;
+      const phase = Math.floor(t / 180) % 2;
+      this.braziers.forEach((bx, k) => {
+        ctx.globalAlpha = 0.14;
+        ctx.fillStyle = "#e2691c";
+        for (let j = -7; j <= 7; j++) {
+          for (let i = -7; i <= 7; i++) {
+            if (Math.hypot(i, j) < 7 && (i + j + phase) % 2 === 0) ctx.fillRect(bx + i, gy - 15 + j, 1, 1);
+          }
+        }
+        ctx.globalAlpha = 1;
+        const heights = this.flames[k] || [1, 3, 5, 3, 1];
+        heights.forEach((h, i) => {
+          for (let y = 0; y < h; y++) {
+            const f = y / Math.max(1, h);
+            ctx.fillStyle = y === 0 && i > 0 && i < 4 ? "#fff2a8" : f < 0.4 ? "#f8c531" : f < 0.75 ? "#e2691c" : "#c42332";
+            ctx.fillRect(bx - 2 + i, gy - 13 - y, 1, 1);
+          }
+        });
+      });
+
+      // Schädel mit Aura
+      const red = st.buffs.frenzy || st.buffs.bloodmoon;
+      const gold = st.buffs.claw || st.buffs.fist;
+      const bob = reduceMotion ? 0 : Math.round(Math.sin(t / 650));
+      const bump = t < this.bumpUntil ? -2 : 0;
+      const sx = this.skullX, sy = this.skullY + bob + bump;
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(this.ring(gold ? "#f8c531" : red ? "#c42332" : "#22a596", Math.floor(t / 400) % 2), sx + 16 - 24, sy + 16 - 24);
+      ctx.globalAlpha = 1;
+      let eyes = null;
+      if (t < this.flashUntil) eyes = EYES.flash;
+      else if (gold) eyes = EYES.gold;
+      else if (red) eyes = EYES.red;
+      else if (this.hover) eyes = EYES.hover;
+      ctx.drawImage(eyes ? spriteCanvas("skull", eyes[0], eyes[1]) : spriteCanvas("skull"), sx, sy);
+
+      for (const p of this.parts) {
+        ctx.fillStyle = p.c;
+        ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+      }
+    },
+  };
+
+  /* ---------- Klick auf den Schädel ---------- */
+  const clickTimes = [];
+  function clickSkull(ev) {
+    const t = performance.now();
+    clickTimes.push(t);
+    while (clickTimes.length && clickTimes[0] < t - 1000) clickTimes.shift();
+    G.clickBurst = clickTimes.length;
+
+    const gain = G.click;
+    earn(gain);
+    st.clicks++;
+    st.clickSouls += gain;
+    Scene.bumpUntil = t + 90;
+    Scene.flashUntil = t + 70;
+    Sfx.click();
+
+    const altar = $("altar").getBoundingClientRect();
+    let cx = ev.clientX, cy = ev.clientY;
+    if (!ev.detail || (!cx && !cy)) {
+      const b = $("skullBtn").getBoundingClientRect();
+      cx = b.left + b.width / 2 + rand(-20, 20);
+      cy = b.top + b.height / 3;
+    }
+    Scene.burst(cx, cy);
+    floater("+" + fmt(gain, { dec: true }), cx - altar.left + rand(-8, 8), cy - altar.top - 10, gain >= G.clickNoBuff * 50);
+    if (G.clickBurst >= 12) checkAchievements();
+  }
+
+  function floater(text, x, y, big) {
+    const box = $("floaters");
+    if (box.children.length > 28) box.firstChild.remove();
+    const f = document.createElement("span");
+    f.className = "floater" + (big ? " big" : "");
+    f.textContent = text;
+    f.style.left = x + "px";
+    f.style.top = y + "px";
+    f.addEventListener("animationend", () => f.remove());
+    box.appendChild(f);
+  }
+
+  /* ---------- Meldungen und Dialoge ---------- */
+  function toast(title, html, icon) {
+    const box = $("toasts");
+    while (box.children.length >= (window.innerWidth < 720 ? 2 : 3)) box.firstChild.remove();
+    const t = document.createElement("div");
+    t.className = "toast px-box";
+    t.innerHTML = `${imgTag(icon ? iconURL(icon) : SOUL_URL())}<div><strong>${esc(title)}</strong><span>${html}</span></div>`;
+    box.appendChild(t);
+    setTimeout(() => {
+      t.classList.add("leaving");
+      setTimeout(() => t.remove(), 320);
+    }, 4600);
+  }
+
+  let modalReturn = null;
+  let modalDismiss = null;
+  function openModal({ title, body, actions, onDismiss }) {
+    modalReturn = document.activeElement;
+    modalDismiss = onDismiss || null;
+    $("modalTitle").textContent = title;
+    $("modalBody").innerHTML = body;
+    const box = $("modalActions");
+    box.innerHTML = "";
+    for (const a of actions) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "px-btn " + (a.cls || "");
+      b.textContent = a.label;
+      b.addEventListener("click", () => {
+        if (a.run && a.run() === false) return;
+        closeModal(false);
+      });
+      box.appendChild(b);
+    }
+    $("modalBack").hidden = false;
+    const focusTarget = $("modalBody").querySelector("textarea") || box.lastElementChild;
+    if (focusTarget) focusTarget.focus();
+  }
+  function closeModal(dismissed) {
+    if ($("modalBack").hidden) return;
+    $("modalBack").hidden = true;
+    if (dismissed && modalDismiss) modalDismiss();
+    modalDismiss = null;
+    if (modalReturn && modalReturn.focus) modalReturn.focus();
+  }
+
+  /* ---------- Tooltip ---------- */
+  let lastPointer = "mouse";
+  const Tip = {
+    target: null,
+    render: null,
+    show(target, render) {
+      this.target = target;
+      this.render = render;
+      this.refresh();
+    },
+    refresh() {
+      if (!this.target || !this.target.isConnected) return this.hide();
+      const el = $("tooltip");
+      el.innerHTML = this.render();
+      el.hidden = false;
+      const r = this.target.getBoundingClientRect();
+      const tw = el.offsetWidth, th = el.offsetHeight;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      let x = r.left - tw - 14, y;
+      if (x < 8) x = r.right + 14;
+      if (x + tw > vw - 8) {
+        x = clamp(r.left + r.width / 2 - tw / 2, 8, vw - tw - 8);
+        y = r.top - th - 12;
+        if (y < 8) y = r.bottom + 12;
+      } else {
+        y = r.top + r.height / 2 - th / 2;
+      }
+      el.style.left = Math.round(x) + "px";
+      el.style.top = Math.round(clamp(y, 8, Math.max(8, vh - th - 8))) + "px";
+    },
+    hide() {
+      this.target = null;
+      $("tooltip").hidden = true;
+    },
+  };
+
+  function tipBuilding(id) {
+    const b = BLD[id];
+    const vis = visibleBuildings().find((v) => v.b.id === id);
+    if (!vis || vis.mystery) {
+      return `<div class="tip-head">${imgTag(shadowURL(b.sprite))}<span class="tip-title">???</span><span></span></div>
+        <div class="tip-cost ${st.souls >= priceOf(b, 0, 1) ? "" : "no"}">${imgTag(SOUL_URL())}${fmt(priceOf(b, 0, 1))}</div>
+        <p class="tip-flavor">Ernte mehr Seelen, um dieses Gebäude zu entdecken.</p>`;
+    }
+    const have = st.buildings[id];
+    const selling = shop.mode === "sell";
+    const price = selling ? sellValue(b, have, shop.amount) : priceOf(b, have, shop.amount);
+    const ok = selling ? have > 0 : st.souls >= price;
+    const share = G.baseSps > 0 ? G.bSps[id] / G.baseSps : 0;
+    return `<div class="tip-head">${imgTag(SE.spriteURL(b.sprite))}<span class="tip-title">${esc(b.name)}</span><span class="tip-owned">${have} im Besitz</span></div>
+      <div class="tip-cost ${ok ? "" : "no"}">${imgTag(SOUL_URL())}${selling ? "Erlös: " : ""}${fmt(price)}${shop.amount > 1 ? ` <span class="tip-meta">(${Math.min(shop.amount, selling ? have : shop.amount)} Stück)</span>` : ""}</div>
+      <p class="tip-flavor">„${esc(b.desc)}“</p>
+      <p class="tip-meta">Pro Stück: <b>${fmt(G.each[id], { dec: true })}</b> Seelen pro Sekunde.</p>
+      ${have ? `<p class="tip-meta">Alle zusammen: <b>${fmt(G.bSps[id], { dec: true })}</b> pro Sekunde (${fmtPct(share)} deiner Ernte).</p>` : ""}`;
+  }
+
+  function tipUpgrade(id) {
+    const u = UPG[id];
+    const ok = st.souls >= u.cost;
+    const need = u.need || (u.needFn ? u.needFn(fmt) : "");
+    return `<div class="tip-head">${imgTag(iconURL(u.icon))}<span class="tip-title">${esc(u.name)}</span><span class="tip-owned">${u.icon.badge ? "Stufe " + u.icon.badge : "Verbesserung"}</span></div>
+      <div class="tip-cost ${ok ? "" : "no"}">${imgTag(SOUL_URL())}${fmt(u.cost)}</div>
+      <p class="tip-desc">${esc(u.desc)}</p>
+      ${need ? `<p class="tip-meta">Freigeschaltet durch ${esc(need)}.</p>` : ""}
+      ${lastPointer !== "mouse" ? `<p class="tip-hint">${ok ? "Noch einmal tippen zum Kaufen." : "Dafür fehlen dir noch Seelen."}</p>` : ""}`;
+  }
+
+  function tipTrophy(id) {
+    const a = ACH[id];
+    const has = won.has(id);
+    if (a.hidden && !has) {
+      return `<div class="tip-head">${imgTag(SE.spriteURL("lock"))}<span class="tip-title">???</span><span class="tip-owned">geheim</span></div>
+        <p class="tip-flavor">Eine geheime Trophäe. Manche Dinge zeigen sich erst, wenn man sie tut.</p>`;
+    }
+    return `<div class="tip-head">${imgTag(has ? iconURL(a.icon) : shadowURL(a.icon.sprite))}<span class="tip-title">${esc(a.name)}</span><span class="tip-owned">${has ? "errungen" : "offen"}</span></div>
+      <p class="tip-desc">${esc(a.desc(fmt))}</p>
+      <p class="tip-meta">Jede Trophäe: +1 % Seelen pro Sekunde.</p>`;
+  }
+
+  /* ---------- Händler ---------- */
+  const shop = { mode: "buy", amount: 1, sig: "", upSig: "" };
+
+  function visibleBuildings() {
+    const out = [];
+    let mysteries = 0;
+    BUILDINGS.forEach((b, i) => {
+      if (i === 0 || st.seen[b.id] || st.buildings[b.id] > 0 || st.runSouls >= b.cost * 0.5) {
+        st.seen[b.id] = true;
+        out.push({ b, mystery: false });
+      } else if (mysteries < 2) {
+        mysteries++;
+        out.push({ b, mystery: true });
+      }
+    });
+    return out;
+  }
+
+  function renderBuildings(force) {
+    const list = visibleBuildings();
+    const sig = list.map((v) => v.b.id + (v.mystery ? "?" : "")).join(",");
+    const box = $("buildingList");
+    if (force || sig !== shop.sig) {
+      shop.sig = sig;
+      box.innerHTML = list
+        .map(({ b, mystery }) => `<button type="button" class="bld${mystery ? " is-mystery" : ""}" data-id="${b.id}">
+          ${imgTag(mystery ? shadowURL(b.sprite) : SE.spriteURL(b.sprite))}
+          <span class="bld-main"><span class="bld-name">${mystery ? "???" : esc(b.name)}</span>
+          <span class="bld-cost">${imgTag(SOUL_URL())}<span class="cost-val"></span></span></span>
+          <span class="bld-count"></span></button>`)
+        .join("");
+    }
+    for (const row of box.children) {
+      const b = BLD[row.dataset.id];
+      const have = st.buildings[b.id];
+      const mystery = row.classList.contains("is-mystery");
+      const selling = shop.mode === "sell" && !mystery;
+      const price = selling ? sellValue(b, have, shop.amount) : priceOf(b, have, shop.amount);
+      const ok = selling ? have > 0 : st.souls >= price;
+      row.querySelector(".cost-val").textContent = fmt(price);
+      row.querySelector(".bld-count").textContent = mystery || !have ? "" : have;
+      row.classList.toggle("too-expensive", !ok);
+      row.classList.toggle("sell-mode", selling);
+      row.setAttribute(
+        "aria-label",
+        mystery
+          ? `Unbekanntes Gebäude, Preis ${fmt(price)} Seelen`
+          : `${b.name} ${selling ? "verkaufen, Erlös" : "kaufen, Preis"} ${fmt(price)} Seelen, ${have} im Besitz`,
+      );
+    }
+  }
+
+  function availableUpgrades() {
+    const seen = new Set(st.upSeen);
+    const list = [];
+    for (const u of UPGRADES) {
+      if (owned.has(u.id)) continue;
+      if (seen.has(u.id) || u.unlock(st)) {
+        if (!seen.has(u.id)) st.upSeen.push(u.id);
+        list.push(u);
+      }
+    }
+    return list.sort((a, b) => a.cost - b.cost);
+  }
+
+  function renderUpgrades(force) {
+    const list = availableUpgrades();
+    const sig = list.map((u) => u.id).join(",");
+    const box = $("upgradeGrid");
+    if (force || sig !== shop.upSig) {
+      shop.upSig = sig;
+      box.innerHTML = list
+        .map((u) => `<button type="button" class="upg" data-id="${u.id}" style="--frame:${u.icon.frame || "#f8c531"}" aria-label="${esc(u.name)}, ${fmt(u.cost)} Seelen">
+          ${imgTag(iconURL(u.icon))}${u.icon.badge ? `<span class="badge">${u.icon.badge}</span>` : ""}</button>`)
+        .join("");
+      $("upgradeEmpty").hidden = list.length > 0;
+      if (Tip.target && !Tip.target.isConnected) Tip.hide();
+    }
+    for (const el of box.children) el.classList.toggle("can-buy", st.souls >= UPG[el.dataset.id].cost);
+  }
+
+  function buyBuilding(id, row) {
+    const b = BLD[id];
+    if (row && row.classList.contains("is-mystery")) return;
+    const have = st.buildings[id];
+    if (shop.mode === "sell") {
+      const k = Math.min(shop.amount, have);
+      if (!k) return deny(row);
+      earnBack(sellValue(b, have, k));
+      st.buildings[id] -= k;
+      st.sold += k;
+      Sfx.sell();
+    } else {
+      const price = priceOf(b, have, shop.amount);
+      if (st.souls < price) return deny(row);
+      st.souls -= price;
+      st.buildings[id] += shop.amount;
+      st.seen[id] = true;
+      Sfx.buy();
+    }
+    recalc();
+    renderBuildings();
+    renderUpgrades();
+    renderRealm();
+    checkAchievements();
+    if (Tip.target === row) Tip.refresh();
+  }
+  // Verkaufserlös zählt nicht als neu geerntete Seelen
+  function earnBack(n) {
+    st.souls += n;
+  }
+
+  function buyUpgrade(id, el) {
+    const u = UPG[id];
+    if (!u || owned.has(id)) return;
+    if (st.souls < u.cost) return deny(el);
+    st.souls -= u.cost;
+    st.upgrades.push(id);
+    owned.add(id);
+    Sfx.buy();
+    Tip.hide();
+    recalc();
+    renderUpgrades(true);
+    renderBuildings();
+    renderRealm();
+    checkAchievements();
+  }
+
+  function deny(el) {
+    Sfx.deny();
+    if (!el) return;
+    el.classList.remove("denied");
+    void el.offsetWidth;
+    el.classList.add("denied");
+  }
+
+  /* ---------- Reich ---------- */
+  const strips = {};
+  let realmFrame = 0;
+  function renderRealm() {
+    const box = $("realm");
+    const have = BUILDINGS.filter((b) => st.buildings[b.id] > 0);
+    $("realmEmpty").hidden = have.length > 0;
+    $("realmSub").textContent = have.length
+      ? `${NF[0].format(G.totalBuildings)} Gebäude ernten ${fmt(G.baseSps, { dec: true })} Seelen pro Sekunde.`
+      : "Hier siehst du alles, was für dich Seelen erntet.";
+    for (const id of Object.keys(strips)) {
+      if (!st.buildings[id]) {
+        strips[id].wrap.remove();
+        delete strips[id];
+      }
+    }
+    for (const b of have) {
+      let s = strips[b.id];
+      if (!s) {
+        const wrap = document.createElement("div");
+        wrap.className = "strip";
+        wrap.innerHTML = `<p class="strip-label"></p><div class="strip-view"><canvas></canvas></div>`;
+        s = strips[b.id] = { wrap, b, canvas: wrap.querySelector("canvas"), label: wrap.querySelector(".strip-label"), view: wrap.querySelector(".strip-view") };
+      }
+      box.appendChild(s.wrap); // hält die Reihenfolge
+      const n = st.buildings[b.id];
+      const share = G.baseSps > 0 ? G.bSps[b.id] / G.baseSps : 0;
+      s.label.innerHTML = `<b>${NF[0].format(n)}</b> ${esc(n === 1 ? b.name : b.plural)} <span>· ${fmt(G.bSps[b.id], { dec: true })} pro Sekunde · ${fmtPct(share)}</span>`;
+      drawStrip(s);
+    }
+  }
+
+  function drawStrip(s) {
+    const S = 2, H = 26;
+    const cw = s.view.clientWidth;
+    if (!cw) return;
+    const W = Math.ceil(cw / S);
+    const c = s.canvas;
+    if (c.width !== W) {
+      c.width = W;
+      c.height = H;
+      c.style.width = W * S + "px";
+      c.style.height = H * S + "px";
+    }
+    const x = c.getContext("2d");
+    const b = s.b;
+    x.fillStyle = b.sky;
+    x.fillRect(0, 0, W, H);
+    x.fillStyle = "rgba(236,227,210,0.5)";
+    for (let i = 0; i < W; i += 23) x.fillRect((i * 7 + b.cost) % W, (i * 3) % 9 + 1, 1, 1);
+    x.fillStyle = b.floor;
+    x.fillRect(0, H - 5, W, 5);
+    x.fillStyle = "rgba(255,255,255,0.12)";
+    x.fillRect(0, H - 5, W, 1);
+    x.fillStyle = "rgba(0,0,0,0.3)";
+    for (let i = 0; i < W; i += 6) x.fillRect(i, H - 3 + (i % 12 ? 0 : 1), 3, 1);
+    const n = st.buildings[b.id];
+    const step = 13;
+    const max = Math.floor((W - 6) / step);
+    const sp = spriteCanvas(b.sprite);
+    for (let i = 0; i < Math.min(n, max); i++) {
+      const jx = ((i * 7919) % 5) - 2, jy = ((i * 104729) % 3);
+      const bob = !reduceMotion && (i + realmFrame) % 4 === 0 ? -1 : 0;
+      x.drawImage(sp, 3 + i * step + jx, H - 5 - 16 + 2 - jy + bob);
+    }
+  }
+
+  /* ---------- Irrlichter ---------- */
+  const wisps = new Set();
+  let nextWispAt = 0;
+  function scheduleWisp(first) {
+    const secs = first ? rand(50, 110) : rand(120, 300) * G.wispFreq;
+    nextWispAt = performance.now() + secs * 1000;
+  }
+
+  function spawnWisp() {
+    const layer = $("wispLayer");
+    const size = 72;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "wisp";
+    btn.setAttribute("aria-label", "Irrlicht fangen");
+    btn.innerHTML = imgTag(SE.spriteURL("wisp"));
+    btn.style.left = Math.round(rand(16, Math.max(20, window.innerWidth - size - 16))) + "px";
+    btn.style.top = Math.round(rand(70, Math.max(80, window.innerHeight - size - 110))) + "px";
+    btn.style.animationDelay = `0s, ${-rand(0, 1.6).toFixed(2)}s`;
+    const w = { el: btn };
+    w.timer = setTimeout(() => removeWisp(w), 13000 * G.wispDur);
+    btn.addEventListener("click", () => catchWisp(w));
+    layer.appendChild(btn);
+    wisps.add(w);
+    Sfx.wisp();
+    if (!st.hints.wisp) {
+      st.hints.wisp = true;
+      toast("Ein Irrlicht!", "Fang es, bevor es verlischt. Irrlichter bringen Seelen oder einen <b>Blutrausch</b>.", { sprite: "wisp" });
+    }
+  }
+
+  function removeWisp(w) {
+    if (!wisps.has(w)) return;
+    wisps.delete(w);
+    clearTimeout(w.timer);
+    w.el.classList.add("leaving");
+    setTimeout(() => w.el.remove(), 650);
+  }
+
+  function catchWisp(w) {
+    if (!wisps.has(w)) return;
+    removeWisp(w);
+    st.wispsClicked++;
+    const dur = G.wispDur * G.buffDur;
+    const r = Math.random();
+    const rect = w.el.getBoundingClientRect();
+    if (r < 0.5) {
+      const gain = Math.min(st.souls * 0.15, G.baseSps * 900) + 13;
+      earn(gain);
+      toast("Seelenregen", `Das Irrlicht zerplatzt: <b>+${fmt(gain)}</b> Seelen.`, { sprite: "soul" });
+      bigFloater("+" + fmt(gain), rect);
+    } else if (r < 0.88) {
+      addBuff("frenzy", 77 * dur);
+      toast("Blutrausch", `${Math.round(77 * dur)} Sekunden lang <b>siebenfache</b> Seelen pro Sekunde.`, BUFFS.frenzy.icon);
+    } else {
+      addBuff("claw", 13 * dur);
+      toast("Dämonenklaue", `${Math.round(13 * dur)} Sekunden lang ernten Klicks das <b>777-Fache</b>.`, BUFFS.claw.icon);
+    }
+    Sfx.catch();
+    checkAchievements();
+  }
+
+  function bigFloater(text, rect) {
+    const f = document.createElement("span");
+    f.className = "floater big";
+    f.textContent = text;
+    f.style.left = rect.left + rect.width / 2 + "px";
+    f.style.top = rect.top + "px";
+    f.style.position = "fixed";
+    f.style.zIndex = 45;
+    f.addEventListener("animationend", () => f.remove());
+    document.body.appendChild(f);
+  }
+
+  /* ---------- Effekt-Leiste ---------- */
+  let buffSig = "";
+  function renderBuffs() {
+    const box = $("buffs");
+    const now = Date.now();
+    const ids = Object.keys(st.buffs).filter((id) => BUFFS[id]);
+    const sig = ids.join(",");
+    if (sig !== buffSig) {
+      buffSig = sig;
+      box.innerHTML = ids
+        .map((id) => `<div class="buff" style="--buff:${BUFFS[id].color}" data-id="${id}">${imgTag(iconURL(BUFFS[id].icon))}
+          <span>${esc(BUFFS[id].name)} <b>${BUFFS[id].text}</b> <span class="buff-time"></span></span></div>`)
+        .join("");
+    }
+    for (const el of box.children) {
+      const b = st.buffs[el.dataset.id];
+      if (b) el.querySelector(".buff-time").textContent = Math.ceil((b.until - now) / 1000) + "s";
+    }
+  }
+
+  /* ---------- Schicksalsrad ---------- */
+  const Wheel = {
+    R: 78,
+    angle: 0,
+    spinning: false,
+    bounceUntil: 0,
+    segs: [],
+
+    init() {
+      const total = WHEEL.reduce((s, w) => s + w.weight, 0);
+      let a = 0;
+      this.segs = WHEEL.map((w) => {
+        const a0 = a;
+        a += (w.weight / total) * TWO_PI;
+        const hex = w.color.replace("#", "");
+        const rgb = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+        const lite = rgb.map((v) => Math.min(255, Math.round(v * 1.35 + 14)));
+        return { w, a0, a1: a, rgb, lite };
+      });
+      this.W = this.R * 2 + 6;
+      this.H = this.R * 2 + 12;
+      this.cx = this.W / 2;
+      this.cy = this.H - this.R - 3;
+      this.canvas = $("wheelCanvas");
+      this.canvas.width = this.W;
+      this.canvas.height = this.H;
+      this.ctx = this.canvas.getContext("2d");
+      this.img = this.ctx.createImageData(this.W, this.H);
+      this.angle = -(this.segs[0].a0 + this.segs[0].a1) / 2; // erstes Feld oben
+    },
+
+    layout() {
+      const avail = $("wheelStage").clientWidth;
+      if (!avail) return;
+      const byWidth = Math.floor(avail / this.W);
+      const byHeight = Math.floor(($("panels").clientHeight - 240) / this.H);
+      const S = clamp(window.innerWidth < 720 ? byWidth : Math.min(byWidth, byHeight), 1, 3);
+      this.canvas.style.width = this.W * S + "px";
+      this.canvas.style.height = this.H * S + "px";
+    },
+
+    segAt(psi) {
+      for (let i = 0; i < this.segs.length; i++) if (psi < this.segs[i].a1) return i;
+      return this.segs.length - 1;
+    },
+    segAtPointer() {
+      return this.segAt(mod(-this.angle, TWO_PI));
+    },
+
+    draw(t = performance.now()) {
+      const { W, H, R, cx, cy, segs } = this;
+      const d = this.img.data;
+      d.fill(0);
+      const th = this.angle;
+      const lights = this.spinning ? Math.floor(t / 70) % 3 : Math.floor(t / 500) % 2;
+      const put = (i, r, g, b) => { d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = 255; };
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const dx = x + 0.5 - cx, dy = y + 0.5 - cy;
+          const r = Math.sqrt(dx * dx + dy * dy);
+          if (r > R + 0.5) continue;
+          const i = (y * W + x) * 4;
+          const a = Math.atan2(dx, -dy);
+          if (r > R - 0.8) { put(i, 10, 7, 16); continue; }
+          if (r > R - 6) {
+            // Rand mit Lichtern
+            const k = mod(a, TWO_PI) / (TWO_PI / 24);
+            const near = Math.abs(k - Math.round(k)) * r * (TWO_PI / 24) < 1.3 && r > R - 4.6 && r < R - 1.6;
+            if (near) {
+              const on = this.spinning ? Math.round(k) % 3 === lights : Math.round(k) % 2 === lights;
+              on ? put(i, 255, 242, 168) : put(i, 168, 116, 26);
+            } else if (r > R - 1.8 || r < R - 5.2) put(i, 10, 7, 16);
+            else put(i, 74, 46, 28);
+            continue;
+          }
+          if (r < 10) {
+            if (r > 9) put(i, 10, 7, 16);
+            else put(i, 26, 19, 32);
+            continue;
+          }
+          const psi = mod(a - th, TWO_PI);
+          const s = segs[this.segAt(psi)];
+          const edge = Math.min(psi - s.a0, s.a1 - psi) * r;
+          if (edge < 0.75) { put(i, 10, 7, 16); continue; }
+          const col = r > R - 9 && (x + y) % 2 === 0 ? s.rgb.map((v) => v * 0.7) : r < 22 && (x + y) % 2 === 0 ? s.rgb.map((v) => v * 0.8) : edge < 2 ? s.lite : s.rgb;
+          put(i, col[0], col[1], col[2]);
+        }
+      }
+      this.ctx.putImageData(this.img, 0, 0);
+
+      for (const s of segs) {
+        const mid = (s.a0 + s.a1) / 2 + th;
+        const rr = R - 22;
+        const ix = cx + Math.sin(mid) * rr - 8, iy = cy - Math.cos(mid) * rr - 8;
+        this.ctx.drawImage(spriteCanvas(s.w.sprite, s.w.pal, s.w.pal ? "wheel-" + s.w.id : ""), Math.round(ix), Math.round(iy));
+      }
+      this.ctx.drawImage(spriteCanvas("soul"), Math.round(cx - 4), Math.round(cy - 5));
+      const bounce = t < this.bounceUntil ? -2 : 0;
+      this.ctx.drawImage(spriteCanvas("pointer"), Math.round(cx - 5), cy - R - 6 + bounce);
+    },
+
+    spin(index, done) {
+      const s = this.segs[index];
+      const margin = Math.min(0.2 * (s.a1 - s.a0), 0.06);
+      const psi = rand(s.a0 + margin, s.a1 - margin);
+      const start = this.angle;
+      const turns = reduceMotion ? 1 : 6;
+      const end = start + turns * TWO_PI + mod(-psi - start, TWO_PI);
+      const dur = reduceMotion ? 1600 : 5600;
+      const t0 = performance.now();
+      let last = this.segAtPointer();
+      this.spinning = true;
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / dur);
+        this.angle = start + (end - start) * (1 - Math.pow(1 - p, 4));
+        const cur = this.segAtPointer();
+        if (cur !== last) {
+          last = cur;
+          this.bounceUntil = now + 60;
+          Sfx.tick();
+        }
+        this.draw(now);
+        if (p < 1) requestAnimationFrame(step);
+        else {
+          this.spinning = false;
+          this.angle = mod(this.angle, TWO_PI);
+          this.draw(now);
+          done();
+        }
+      };
+      requestAnimationFrame(step);
+    },
+  };
+
+  const canSpin = () => st.wheel.last !== dayKey() && !Wheel.spinning && !st.wheel.pending;
+
+  function rollWheel() {
+    const total = WHEEL.reduce((s, w) => s + w.weight, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < WHEEL.length; i++) {
+      r -= WHEEL[i].weight;
+      if (r < 0) return i;
+    }
+    return 0;
+  }
+
+  function wheelPrize(seg) {
+    const streak = Math.max(1, st.wheel.streak);
+    const mult = (1 + 0.1 * Math.min(streak - 1, 6)) * G.wheelMult;
+    const souls = (secs, minClicks, min) => Math.max(G.baseSps * secs, G.clickNoBuff * minClicks, min) * mult;
+    switch (seg.id) {
+      case "bag": return { id: seg.id, amount: souls(900, 150, 150) };
+      case "chest": return { id: seg.id, amount: souls(3600, 600, 600) };
+      case "hoard": return { id: seg.id, amount: souls(14400, 2500, 2500) };
+      case "coffin": {
+        const have = BUILDINGS.filter((b) => st.buildings[b.id] > 0);
+        return { id: seg.id, building: (have.length ? have[have.length - 1] : BUILDINGS[0]).id, count: 3 };
+      }
+      case "relic": {
+        const missing = RELICS.filter((r) => !st.relics.includes(r.id));
+        if (missing.length) return { id: seg.id, relic: pick(missing).id };
+        return { id: seg.id, amount: souls(14400, 2500, 2500) * 2 };
+      }
+      default: return { id: seg.id };
+    }
+  }
+
+  function spinWheel() {
+    if (!canSpin()) return;
+    const index = rollWheel();
+    const today = dayKey();
+    st.wheel.streak = st.wheel.last === yesterdayKey() ? st.wheel.streak + 1 : 1;
+    st.wheel.bestStreak = Math.max(st.wheel.bestStreak, st.wheel.streak);
+    st.wheel.last = today;
+    st.wheel.spins++;
+    st.wheel.pending = wheelPrize(WHEEL[index]);
+    save();
+    $("wheelResult").hidden = true;
+    renderWheelStatus();
+    Wheel.spin(index, () => {
+      applyWheelPrize(st.wheel.pending, false);
+      renderWheelStatus();
+    });
+  }
+
+  function applyWheelPrize(p, quiet) {
+    if (!p) return;
+    const seg = WHEEL.find((w) => w.id === p.id) || WHEEL[0];
+    let text;
+    let icon = { sprite: seg.sprite, pal: seg.pal, key: seg.pal ? "wheel-" + seg.id : "" };
+    if (p.relic) {
+      const r = RELIC[p.relic];
+      if (!st.relics.includes(r.id)) st.relics.push(r.id);
+      text = `Relikt gefunden: <b>${esc(r.name)}</b>. ${esc(r.desc)}`;
+      icon = { sprite: r.sprite };
+    } else if (p.amount) {
+      earn(p.amount);
+      if (p.id === "hoard") st.wheel.hoards++;
+      text = p.id === "relic"
+        ? `Du besitzt schon alle Relikte. Dafür gibt es <b>+${fmt(p.amount)}</b> Seelen.`
+        : `<b>+${fmt(p.amount)}</b> Seelen.`;
+    } else if (p.building) {
+      const b = BLD[p.building];
+      st.buildings[b.id] += p.count;
+      st.seen[b.id] = true;
+      text = `<b>+${p.count} ${esc(b.plural)}</b> ziehen gratis in dein Reich.`;
+      icon = { sprite: b.sprite };
+    } else if (p.id === "bloodmoon") {
+      addBuff("bloodmoon", 300);
+      text = "5 Minuten lang <b>fünffache</b> Seelen pro Sekunde.";
+    } else if (p.id === "fist") {
+      addBuff("fist", 60);
+      text = "60 Sekunden lang ernten Klicks das <b>77-Fache</b>.";
+    } else if (p.id === "swarm") {
+      [0, 700, 1400].forEach((ms) => setTimeout(spawnWisp, ms));
+      text = "<b>Drei Irrlichter</b> schwirren umher. Fang sie!";
+    }
+    st.wheel.pending = null;
+    st.wheel.lastResult = { id: seg.id, name: seg.name, text, icon, date: dayKey() };
+    recalc();
+    renderBuildings();
+    renderUpgrades();
+    renderRealm();
+    renderRelics();
+    renderWheelResult();
+    checkAchievements();
+    save();
+    if (!quiet) Sfx.win();
+    toast(quiet ? "Schicksalsrad (letzter Dreh)" : "Schicksalsrad: " + seg.name, text, icon);
+  }
+
+  function renderWheelLegend() {
+    const total = WHEEL.reduce((s, w) => s + w.weight, 0);
+    $("wheelLegend").innerHTML = WHEEL.map((w) => `<li>${imgTag(iconURL({ sprite: w.sprite, pal: w.pal, key: w.pal ? "wheel-" + w.id : "" }))}
+      <span><span class="name">${esc(w.name)}</span><span class="what">${esc(w.desc)}</span></span>
+      <span class="chance" style="background:${w.color}">${Math.round((w.weight / total) * 100)} %</span></li>`).join("");
+  }
+
+  function renderWheelResult() {
+    const r = st.wheel.lastResult;
+    const box = $("wheelResult");
+    if (!r || r.date !== dayKey()) {
+      box.hidden = true;
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML = `${imgTag(iconURL(r.icon))}<div><strong>Heute gewonnen: ${esc(r.name)}</strong>${r.text}</div>`;
+  }
+
+  function renderWheelStatus() {
+    const btn = $("spinBtn");
+    const today = st.wheel.last === dayKey();
+    const ready = canSpin();
+    btn.disabled = !ready;
+    btn.textContent = Wheel.spinning ? "Es dreht sich …" : ready ? "Drehen" : "Morgen wieder";
+    $("wheelStatus").innerHTML = Wheel.spinning
+      ? "Das Rad entscheidet …"
+      : ready
+        ? "Das Rad wartet auf dich."
+        : `Nächster Dreh in <b>${fmtClock(secondsToMidnight())}</b>`;
+    const alive = today || st.wheel.last === yesterdayKey();
+    const streak = alive ? st.wheel.streak : 0;
+    const next = ready ? (st.wheel.last === yesterdayKey() ? st.wheel.streak + 1 : 1) : streak;
+    const bonus = Math.round(10 * Math.min(Math.max(next, 1) - 1, 6));
+    $("wheelStreak").innerHTML = `Serie: <b>${streak} ${streak === 1 ? "Tag" : "Tage"}</b>. ${
+      bonus ? `Seelen vom Rad +${bonus} %.` : "Jeder Tag in Folge bringt +10 % Seelen vom Rad, bis +60 %."
+    }`;
+    $("wheelDot").hidden = !ready;
+  }
+
+  /* ---------- Trophäen ---------- */
+  function renderTrophies() {
+    const box = $("trophyGrid");
+    if (!box.children.length) {
+      box.innerHTML = ACHIEVEMENTS.map((a) => `<button type="button" class="trophy" data-id="${a.id}"></button>`).join("");
+    }
+    for (const el of box.children) {
+      const a = ACH[el.dataset.id];
+      const has = won.has(a.id);
+      if (el.dataset.state === String(has)) continue;
+      el.dataset.state = String(has);
+      el.classList.toggle("is-won", has);
+      const src = has ? iconURL(a.icon) : a.hidden ? SE.spriteURL("lock") : shadowURL(a.icon.sprite);
+      el.innerHTML = imgTag(src);
+      el.setAttribute("aria-label", has || !a.hidden ? `${a.name}${has ? ", errungen" : ", offen"}` : "Geheime Trophäe");
+    }
+    const n = st.achievements.length;
+    $("trophySub").innerHTML = `${n} von ${ACHIEVEMENTS.length} errungen. <span class="trophy-bonus">Bonus: +${n} % Seelen pro Sekunde.</span>`;
+  }
+
+  function checkAchievements() {
+    let changed = false;
+    for (const a of ACHIEVEMENTS) {
+      if (won.has(a.id)) continue;
+      let ok = false;
+      try {
+        ok = a.check(st, G);
+      } catch {
+        ok = false;
+      }
+      if (!ok) continue;
+      won.add(a.id);
+      st.achievements.push(a.id);
+      changed = true;
+      toast("Trophäe errungen", `<b>${esc(a.name)}</b>: ${esc(a.desc(fmt))}`, a.icon);
+    }
+    if (changed) {
+      Sfx.ach();
+      recalc();
+      renderTrophies();
+    }
+  }
+
+  /* ---------- Grimoire ---------- */
+  function renderStats() {
+    const rows = [
+      ["Seelen im Besitz", fmt(st.souls, { long: true })],
+      ["Geerntet in diesem Leben", fmt(st.runSouls, { long: true })],
+      ["Geerntet insgesamt", fmt(st.allTimeSouls, { long: true })],
+      ["Seelen pro Sekunde", fmt(G.baseSps, { dec: true })],
+      ["Seelen pro Klick", fmt(G.clickNoBuff, { dec: true })],
+      ["Klicks auf den Schädel", NF[0].format(st.clicks)],
+      ["Durch Klicks geerntet", fmt(st.clickSouls)],
+      ["Gebäude", NF[0].format(G.totalBuildings)],
+      ["Verbesserungen", `${st.upgrades.length} von ${UPGRADES.length}`],
+      ["Trophäen", `${st.achievements.length} von ${ACHIEVEMENTS.length}`],
+      ["Irrlichter gefangen", NF[0].format(st.wispsClicked)],
+      ["Am Schicksalsrad gedreht", `${st.wheel.spins}-mal`],
+      ["Längste Serie am Rad", `${st.wheel.bestStreak} ${st.wheel.bestStreak === 1 ? "Tag" : "Tage"}`],
+      ["Rituale", NF[0].format(st.rituals)],
+      ["Schattenessenz", `${NF[0].format(st.essence)} (+${st.essence} %)`],
+      ["Gesamtbonus auf Seelen pro Sekunde", "×" + NF[2].format(G.globalMult)],
+      ["Spielzeit", fmtDuration(st.playTime)],
+      ["Spiel begonnen", fmtDate(st.started)],
+    ];
+    $("stats").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  }
+
+  function renderRelics() {
+    $("relicGrid").innerHTML = RELICS.map((r) => {
+      const has = st.relics.includes(r.id);
+      return `<div class="relic px-inset${has ? "" : " is-missing"}">${imgTag(has ? SE.spriteURL(r.sprite) : shadowURL(r.sprite))}
+        <div><strong>${has ? esc(r.name) : "Unbekanntes Relikt"}</strong><span>${has ? esc(r.desc) : "Noch nicht gefunden."}</span></div></div>`;
+    }).join("");
+  }
+
+  /* ---------- Ritual ---------- */
+  function renderRitual() {
+    const target = essenceFor(st.allTimeSouls);
+    const gain = Math.max(0, target - st.essence);
+    const nextAt = Math.pow(Math.max(target, st.essence) + 1, 3) * 1e12;
+    const sig = [st.essence, gain, target].join("|");
+    const box = $("ritual");
+    if (box.dataset.sig === sig && box.children.length) {
+      const left = box.querySelector(".ritual-left");
+      if (left) left.textContent = fmt(Math.max(0, nextAt - st.allTimeSouls));
+      return;
+    }
+    box.dataset.sig = sig;
+    box.innerHTML = `
+      <div class="essence px-inset">${imgTag(SE.spriteURL("orb"))}
+        <div><strong>${NF[0].format(st.essence)} Schattenessenz</strong>
+        <span>Jede Essenz gibt dir für immer +1 % Seelen pro Sekunde.</span></div></div>
+      <p>Das Ritual nimmt dir Seelen, Gebäude und Verbesserungen. Trophäen, Relikte, Schattenessenz und deine Serie am Schicksalsrad bleiben.</p>
+      <p class="ritual-gain">Ein Ritual jetzt bringt dir <b>+${NF[0].format(gain)} Schattenessenz</b>.</p>
+      <p>Die nächste Essenz gibt es bei ${fmt(nextAt)} geernteten Seelen insgesamt (es fehlen noch <span class="ritual-left">${fmt(Math.max(0, nextAt - st.allTimeSouls))}</span>)</p>
+      <div><button class="px-btn btn-danger" id="ritualBtn" type="button" ${gain < 1 ? "disabled" : ""}>Ritual vollziehen</button></div>`;
+    $("ritualBtn").addEventListener("click", confirmRitual);
+  }
+
+  function confirmRitual() {
+    const gain = essenceFor(st.allTimeSouls) - st.essence;
+    if (gain < 1) return;
+    openModal({
+      title: "Ritual der Wiedergeburt",
+      body: `<p>Dein Reich wird geopfert: alle Seelen, Gebäude und Verbesserungen sind danach fort.</p>
+        <p>Du erhältst <b>+${NF[0].format(gain)} Schattenessenz</b> und damit dauerhaft +${NF[0].format(st.essence + gain)} % Seelen pro Sekunde.</p>`,
+      actions: [
+        { label: "Abbrechen" },
+        { label: "Opfern", cls: "btn-danger", run: doRitual },
+      ],
+    });
+  }
+
+  function doRitual() {
+    const keep = {
+      allTimeSouls: st.allTimeSouls, clicks: st.clicks, clickSouls: st.clickSouls, achievements: st.achievements,
+      wispsClicked: st.wispsClicked, relics: st.relics, essence: essenceFor(st.allTimeSouls), rituals: st.rituals + 1,
+      sold: st.sold, wheel: st.wheel, settings: st.settings, hints: st.hints, started: st.started, playTime: st.playTime,
+    };
+    st = { ...freshState(), ...keep, runStarted: Date.now() };
+    syncSets();
+    recalc();
+    renderAll(true);
+    Sfx.ritual();
+    toast("Wiedergeburt", `Du kehrst stärker zurück: <b>${st.essence} Schattenessenz</b>.`, { sprite: "orb" });
+    checkAchievements();
+    save();
+  }
+
+  /* ---------- Chronik ---------- */
+  const Ticker = {
+    last: -1,
+    timer: 0,
+    next() {
+      const pool = NEWS.map((n, i) => [n, i]).filter(([n, i]) => i !== this.last && (!n.if || n.if(st, G)));
+      if (!pool.length) return;
+      const special = pool.filter(([n]) => n.if);
+      const [n, i] = special.length && Math.random() < 0.6 ? pick(special) : pick(pool);
+      this.last = i;
+      const el = $("tickerText");
+      clearInterval(this.timer);
+      if (reduceMotion) {
+        el.textContent = n.t;
+        return;
+      }
+      let k = 0;
+      el.textContent = "";
+      this.timer = setInterval(() => {
+        k += 2;
+        el.textContent = n.t.slice(0, k);
+        if (k >= n.t.length) clearInterval(this.timer);
+      }, 28);
+    },
+  };
+
+  /* ---------- Reiter ---------- */
+  const mqShopTab = window.matchMedia("(max-width: 1099px)");
+  let activeTab = mqShopTab.matches ? "shop" : "realm";
+
+  function setTab(id) {
+    if (id === "shop" && !mqShopTab.matches) id = "realm";
+    if (id !== activeTab) $("panels").scrollTop = 0;
+    activeTab = id;
+    for (const tab of document.querySelectorAll(".tab")) {
+      const on = tab.dataset.tab === id;
+      tab.setAttribute("aria-selected", String(on));
+      tab.tabIndex = on ? 0 : -1;
+    }
+    for (const p of document.querySelectorAll("#panels > .panel")) p.hidden = p.id !== "panel-" + id;
+    $("panel-shop").hidden = mqShopTab.matches && id !== "shop";
+    Tip.hide();
+    if (id === "wheel") {
+      Wheel.layout();
+      Wheel.draw();
+      renderWheelStatus();
+    }
+    if (id === "realm") renderRealm();
+    if (id === "grimoire") { renderStats(); renderRelics(); }
+    if (id === "ritual") renderRitual();
+    if (id === "trophies") renderTrophies();
+  }
+
+  function placeShop() {
+    const shopEl = $("panel-shop");
+    if (mqShopTab.matches) {
+      if (shopEl.parentElement !== $("panels")) {
+        $("panels").prepend(shopEl);
+        shopEl.classList.add("is-embedded");
+        shopEl.classList.remove("px-box");
+      }
+    } else if (shopEl.parentElement !== $("app")) {
+      $("app").appendChild(shopEl);
+      shopEl.classList.remove("is-embedded");
+      shopEl.classList.add("px-box");
+    }
+    setTab(activeTab);
+  }
+
+  /* ---------- Spielstand übertragen ---------- */
+  function encodeSave() {
+    const bytes = new TextEncoder().encode(JSON.stringify(st));
+    let bin = "";
+    bytes.forEach((b) => (bin += String.fromCharCode(b)));
+    return btoa(bin);
+  }
+  function decodeSave(text) {
+    const bin = atob(text.trim());
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  function exportSave() {
+    st.lastSave = Date.now();
+    const code = encodeSave();
+    openModal({
+      title: "Spielstand exportieren",
+      body: `<p>Kopier diesen Code und heb ihn gut auf. Mit „Spielstand importieren“ holst du ihn zurück.</p>
+        <textarea id="exportText" readonly>${code}</textarea>`,
+      actions: [
+        { label: "Schließen" },
+        {
+          label: "Kopieren",
+          cls: "btn-gold",
+          run: () => {
+            const ta = $("exportText");
+            const fallback = () => { ta.focus(); ta.select(); setNote("Code markiert. Kopier ihn mit Strg+C."); };
+            try {
+              navigator.clipboard.writeText(code).then(() => setNote("Code kopiert."), fallback);
+            } catch {
+              fallback();
+            }
+          },
+        },
+      ],
+    });
+  }
+
+  function importSave() {
+    openModal({
+      title: "Spielstand importieren",
+      body: `<p>Füg deinen exportierten Code ein. Dein aktueller Spielstand wird dabei ersetzt.</p>
+        <textarea id="importText" placeholder="Code hier einfügen"></textarea><p id="importError" class="tip-hint"></p>`,
+      actions: [
+        { label: "Abbrechen" },
+        {
+          label: "Laden",
+          cls: "btn-gold",
+          run: () => {
+            try {
+              const data = decodeSave($("importText").value);
+              if (!data || typeof data !== "object" || !data.buildings) throw new Error();
+              st = mergeState(data);
+              syncSets();
+              recalc();
+              renderAll(true);
+              save();
+              toast("Spielstand geladen", `Willkommen zurück. Du hast <b>${fmt(st.souls)}</b> Seelen.`);
+              return true;
+            } catch {
+              $("importError").textContent = "Dieser Code ist ungültig. Prüf, ob du ihn vollständig eingefügt hast.";
+              return false;
+            }
+          },
+        },
+      ],
+    });
+  }
+
+  function confirmReset() {
+    openModal({
+      title: "Alles vernichten?",
+      body: "<p>Der komplette Spielstand wird gelöscht, auch Trophäen, Relikte und Schattenessenz. Das lässt sich nicht rückgängig machen.</p>",
+      actions: [
+        { label: "Behalten" },
+        {
+          label: "Löschen",
+          cls: "btn-danger",
+          run: () => {
+            const settings = st.settings;
+            st = freshState();
+            st.settings = settings;
+            syncSets();
+            recalc();
+            renderAll(true);
+            save();
+            toast("Neubeginn", "Alles ist vernichtet. Der Schädel wartet.");
+          },
+        },
+      ],
+    });
+  }
+
+  /* ---------- Darstellung ---------- */
+  let shownSouls = -1, shownSps = -1;
+  function updateCounters() {
+    const s = Math.floor(st.souls);
+    if (s !== shownSouls) {
+      shownSouls = s;
+      const long = s >= 1e6;
+      const text = long ? fmt(s, { long: true }) : fmt(s);
+      const [num, ...unit] = text.split(" ");
+      $("souls").textContent = long ? num : text;
+      $("soulsUnit").textContent = long ? unit.join(" ") + " Seelen" : s === 1 ? "Seele" : "Seelen";
+    }
+    if (G.sps !== shownSps) {
+      shownSps = G.sps;
+      $("sps").textContent = fmt(G.sps, { dec: true });
+    }
+  }
+
+  function renderAll(force) {
+    shownSouls = shownSps = -1;
+    shop.sig = shop.upSig = "";
+    buffSig = "";
+    for (const id of Object.keys(strips)) {
+      strips[id].wrap.remove();
+      delete strips[id];
+    }
+    $("trophyGrid").innerHTML = "";
+    renderBuildings(force);
+    renderUpgrades(force);
+    renderRealm();
+    renderBuffs();
+    renderTrophies();
+    renderRelics();
+    renderStats();
+    $("ritual").dataset.sig = "";
+    renderRitual();
+    renderWheelStatus();
+    renderWheelResult();
+    $("optSound").checked = st.settings.sound;
+    $("optParticles").checked = st.settings.particles;
+    updateCounters();
+  }
+
+  /* ---------- Spielschleife ---------- */
+  let lastTick = Date.now();
+  let slowAt = 0, secAt = 0, saveAt = 0, realmAt = 0;
+
+  function tick() {
+    const now = Date.now();
+    const dt = Math.max(0, (now - lastTick) / 1000);
+    lastTick = now;
+    st.playTime += Math.min(dt, 5);
+    let expired = false;
+    for (const [id, b] of Object.entries(st.buffs)) {
+      if (!b || b.until <= now) {
+        delete st.buffs[id];
+        expired = true;
+      }
+    }
+    if (expired) {
+      recalc();
+      renderBuffs();
+    }
+    if (G.sps > 0) earn(G.sps * dt);
+  }
+
+  function frame() {
+    const t = performance.now();
+    tick();
+    Scene.update(1 / 60, t);
+    Scene.render(t);
+    updateCounters();
+
+    if (t > slowAt) {
+      slowAt = t + 250;
+      renderBuildings();
+      renderUpgrades();
+      renderBuffs();
+      if (Tip.target) Tip.refresh();
+      if (!wisps.size && t > nextWispAt) {
+        spawnWisp();
+        scheduleWisp(false);
+      }
+    }
+    if (t > secAt) {
+      secAt = t + 1000;
+      checkAchievements();
+      renderWheelStatus();
+      if (activeTab === "grimoire") renderStats();
+      if (activeTab === "ritual") renderRitual();
+      if (activeTab === "wheel" && !Wheel.spinning) Wheel.draw(t);
+      document.title = `${fmt(st.souls)} Seelen · Seelenernte`;
+    }
+    if (t > realmAt && activeTab === "realm") {
+      realmAt = t + 700;
+      realmFrame++;
+      renderRealm();
+    }
+    if (t > saveAt) {
+      if (saveAt) save();
+      saveAt = t + 20000;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- Ereignisse ---------- */
+  function bindEvents() {
+    document.addEventListener("pointerdown", (e) => {
+      lastPointer = e.pointerType || "mouse";
+      if (lastPointer !== "mouse" && Tip.target && !e.target.closest(".upg, .trophy")) Tip.hide();
+    }, true);
+
+    const skull = $("skullBtn");
+    skull.addEventListener("click", clickSkull);
+    skull.addEventListener("pointerenter", () => (Scene.hover = true));
+    skull.addEventListener("pointerleave", () => (Scene.hover = false));
+
+    // Händler
+    for (const b of document.querySelectorAll(".seg-btn")) {
+      b.addEventListener("click", () => {
+        if (b.dataset.mode) shop.mode = b.dataset.mode;
+        if (b.dataset.amount) shop.amount = Number(b.dataset.amount);
+        for (const o of document.querySelectorAll(".seg-btn")) {
+          o.setAttribute("aria-pressed", String(o.dataset.mode ? o.dataset.mode === shop.mode : Number(o.dataset.amount) === shop.amount));
+        }
+        renderBuildings();
+      });
+    }
+    $("buildingList").addEventListener("click", (e) => {
+      const row = e.target.closest(".bld");
+      if (row) buyBuilding(row.dataset.id, row);
+    });
+    $("upgradeGrid").addEventListener("click", (e) => {
+      const el = e.target.closest(".upg");
+      if (!el) return;
+      if (lastPointer !== "mouse" && Tip.target !== el) {
+        Tip.show(el, () => tipUpgrade(el.dataset.id));
+        return;
+      }
+      buyUpgrade(el.dataset.id, el);
+    });
+    $("trophyGrid").addEventListener("click", (e) => {
+      const el = e.target.closest(".trophy");
+      if (el && lastPointer !== "mouse") Tip.show(el, () => tipTrophy(el.dataset.id));
+    });
+
+    const tipFor = (el) => {
+      if (el.matches(".bld")) return () => tipBuilding(el.dataset.id);
+      if (el.matches(".upg")) return () => tipUpgrade(el.dataset.id);
+      if (el.matches(".trophy")) return () => tipTrophy(el.dataset.id);
+      return null;
+    };
+    document.addEventListener("pointerover", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const el = e.target.closest(".bld, .upg, .trophy");
+      if (el && el !== Tip.target) Tip.show(el, tipFor(el));
+    });
+    document.addEventListener("pointerout", (e) => {
+      if (e.pointerType !== "mouse" || !Tip.target) return;
+      const to = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".bld, .upg, .trophy");
+      if (to !== Tip.target) Tip.hide();
+    });
+    document.addEventListener("focusin", (e) => {
+      const el = e.target.closest && e.target.closest(".bld, .upg, .trophy");
+      if (el && el.matches(":focus-visible")) Tip.show(el, tipFor(el));
+    });
+    document.addEventListener("focusout", (e) => {
+      if (Tip.target && e.target === Tip.target && lastPointer === "keyboard") Tip.hide();
+    });
+    document.addEventListener("keydown", (e) => {
+      lastPointer = "keyboard";
+      if (e.key === "Escape") {
+        if (!$("modalBack").hidden) closeModal(true);
+        else Tip.hide();
+      }
+    });
+
+    // Reiter, mit Pfeiltasten bedienbar
+    const tabs = [...document.querySelectorAll(".tab")];
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => setTab(tab.dataset.tab));
+      tab.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        const visible = tabs.filter((t) => t.offsetParent !== null);
+        const i = visible.indexOf(tab);
+        const next = visible[mod(i + (e.key === "ArrowRight" ? 1 : -1), visible.length)];
+        setTab(next.dataset.tab);
+        next.focus();
+      });
+    }
+
+    $("spinBtn").addEventListener("click", spinWheel);
+    $("optSound").addEventListener("change", (e) => { st.settings.sound = e.target.checked; save(); });
+    $("optParticles").addEventListener("change", (e) => {
+      st.settings.particles = e.target.checked;
+      if (!st.settings.particles) { Scene.souls = []; Scene.parts = []; }
+      save();
+    });
+    $("btnSave").addEventListener("click", () => save(true));
+    $("btnExport").addEventListener("click", exportSave);
+    $("btnImport").addEventListener("click", importSave);
+    $("btnReset").addEventListener("click", confirmReset);
+    $("modalBack").addEventListener("click", (e) => { if (e.target === $("modalBack")) closeModal(true); });
+
+    const onResize = () => {
+      Scene.resize();
+      if (activeTab === "wheel") Wheel.layout();
+      if (activeTab === "realm") renderRealm();
+      Tip.hide();
+    };
+    if (window.ResizeObserver) new ResizeObserver(onResize).observe($("altar"));
+    window.addEventListener("resize", onResize);
+    mqShopTab.addEventListener("change", () => {
+      if (mqShopTab.matches && activeTab === "realm") activeTab = "shop";
+      placeShop();
+      onResize();
+    });
+
+    document.addEventListener("visibilitychange", () => { if (document.hidden) save(); });
+    window.addEventListener("pagehide", () => save());
+    // im Hintergrund läuft die Ernte weiter
+    setInterval(() => { if (document.hidden) tick(); }, 1000);
+  }
+
+  /* ---------- Start ---------- */
+  let started = false;
+  function start(data) {
+    if (started) return;
+    started = true;
+    let loaded = null;
+    if (data && typeof data.save === "string") {
+      try { loaded = JSON.parse(data.save); } catch { loaded = null; }
+    }
+    loaded = loaded || loadLocal();
+    st = mergeState(loaded);
+    syncSets();
+    recalc();
+
+    document.body.style.setProperty("--brick", `url(${SE.spriteURL("brick")})`);
+    $("logoSoul").src = SOUL_URL();
+    Scene.init();
+    Wheel.init();
+    renderWheelLegend();
+    bindEvents();
+    placeShop();
+    renderAll(true);
+    Scene.resize();
+    Wheel.draw();
+    Ticker.next();
+    setInterval(() => Ticker.next(), 11000);
+    scheduleWisp(st.wispsClicked === 0);
+
+    // Ernte während der Abwesenheit
+    const away = (Date.now() - st.lastSave) / 1000;
+    if (loaded && away > 60 && G.baseSps > 0) {
+      const secs = Math.min(away, 7 * 86400);
+      const gain = G.baseSps * secs * G.offline;
+      earn(gain);
+      openModal({
+        title: "Willkommen zurück",
+        body: `<p>Du warst ${fmtDuration(away)} fort. Deine Diener haben in der Zeit weitergeerntet${G.offline < 1 ? " (zur Hälfte, ohne dich arbeiten sie langsamer)" : ""}.</p>
+          <p><b>+${fmt(gain, { long: true })}</b> Seelen</p>`,
+        actions: [{ label: "Weiter ernten", cls: "btn-gold" }],
+      });
+    }
+    // ein Dreh, der beim letzten Mal nicht fertig wurde
+    if (st.wheel.pending) applyWheelPrize(st.wheel.pending, true);
+
+    lastTick = Date.now();
+    checkAchievements();
+    save();
+    requestAnimationFrame(frame);
+  }
+
+  const hot = window.claude && window.claude.hot;
+  try {
+    if (hot && typeof hot.snapshot === "function") hot.snapshot(() => ({ save: JSON.stringify(st) }));
+  } catch {
+    /* Vorschau ohne Hot-Reload */
+  }
+  if (hot && typeof hot.ready === "function") hot.ready(start);
+  else start((hot && hot.data) || {});
+})();
+</script>
 </body>
 </html>

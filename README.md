@@ -62,12 +62,13 @@ Im Ordner `seelenernte/` liegt ein Klickspiel nach dem Vorbild von Cookie Clicke
 - **Ritual der Wiedergeburt**: das Reich opfern und dafür Schattenessenz erhalten, die dauerhaft stärker macht
 - Chronik mit Meldungen aus dem Reich, 8-Bit-Klänge, Ernte während der Abwesenheit, Export und Import des Spielstands; läuft auch auf dem Handy
 
+Das ganze Spiel steckt in der einen Datei `seelenernte/index.html`, du kannst sie also einfach kopieren oder weitergeben. Nur die Pixelschriften lädt sie aus dem Internet (Google Fonts); ohne Verbindung erscheint eine Ersatzschrift. Innerhalb der Datei folgen nacheinander:
+
 ```
-seelenernte/index.html  Aufbau der Seite
-seelenernte/style.css   Pixel-Optik
-seelenernte/sprites.js  Alle Pixelgrafiken als Zeichenraster
-seelenernte/data.js     Gebäude, Verbesserungen, Trophäen, Relikte, Schicksalsrad, Chronik
-seelenernte/game.js     Spiellogik und Oberfläche
+<style>   Pixel-Optik
+<script>  Pixelgrafiken als Zeichenraster
+<script>  Spielinhalte: Gebäude, Verbesserungen, Trophäen, Relikte, Schicksalsrad, Chronik
+<script>  Spiellogik und Oberfläche
 ```
 
 ## Weitere Sprachen hinzufügen
