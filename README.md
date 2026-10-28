@@ -48,6 +48,28 @@ public/app.js      Logik im Browser (inkl. Basis-Modus)
 index.html         Die ganze Seite als einzelne Datei – per Doppelklick öffnen, läuft im Basis-Modus ohne Server
 ```
 
+## Seelenernte (Spiel)
+
+Im Ordner `seelenernte/` liegt ein Klickspiel nach dem Vorbild von Cookie Clicker, im Dark-Fantasy-Stil und in Pixel-Optik wie bei alten 8-Bit-Konsolen. Statt Kekse zu backen, erntest du Seelen, indem du auf einen leuchtenden Schädel klickst.
+
+**Starten:** `seelenernte/index.html` per Doppelklick im Browser öffnen. Ein Server ist nicht nötig. Der Spielstand wird automatisch im Browser gespeichert.
+
+- **12 Gebäude** von der Knochenhand über Hexe, Friedhof, Gruft und Nekromantenturm bis zum Auge des Abgrunds
+- **93 Verbesserungen**: Stufen für jedes Gebäude, Klingen für stärkere Klicks, Opfergaben und Irrlicht-Köder
+- **96 Trophäen**, darunter geheime. Jede bringt +1 % Seelen pro Sekunde
+- **Irrlichter** schweben ab und zu über den Bildschirm. Wer sie fängt, bekommt einen Seelenregen, einen Blutrausch (×7) oder die Dämonenklaue (Klicks ×777)
+- **Schicksalsrad** (eigener Reiter): einmal pro Tag drehen. Zu gewinnen sind Seelen, Blutmond, Höllenfaust, Gratis-Gebäude, Irrlicht-Schwärme, dauerhafte Relikte und als Hauptgewinn der Drachenschatz. Wer an mehreren Tagen hintereinander dreht, bekommt bis zu +60 % mehr Seelen vom Rad
+- **Ritual der Wiedergeburt**: das Reich opfern und dafür Schattenessenz erhalten, die dauerhaft stärker macht
+- Chronik mit Meldungen aus dem Reich, 8-Bit-Klänge, Ernte während der Abwesenheit, Export und Import des Spielstands; läuft auch auf dem Handy
+
+```
+seelenernte/index.html  Aufbau der Seite
+seelenernte/style.css   Pixel-Optik
+seelenernte/sprites.js  Alle Pixelgrafiken als Zeichenraster
+seelenernte/data.js     Gebäude, Verbesserungen, Trophäen, Relikte, Schicksalsrad, Chronik
+seelenernte/game.js     Spiellogik und Oberfläche
+```
+
 ## Weitere Sprachen hinzufügen
 
 1. In `server.js` die Sprache in `LANGUAGES` ergänzen.

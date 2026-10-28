@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seelenernte</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0810">
+<meta name="description" content="Ein Klickspiel im Dark-Fantasy-Pixelstil: Ernte Seelen, baue dein finsteres Reich und dreh jeden Tag am Schicksalsrad.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Links: der Altar mit dem Schädel -->
+  <section class="altar px-box" id="altar" aria-label="Altar">
+    <canvas class="scene" id="scene" aria-hidden="true"></canvas>
+    <div class="hud" id="hud">
+      <h1 class="logo"><img class="logo-soul" id="logoSoul" alt=""> Seelenernte</h1>
+      <p class="count" aria-live="off"><span id="souls">0</span> <span class="count-unit" id="soulsUnit">Seelen</span></p>
+      <p class="rate">pro Sekunde: <span id="sps">0</span></p>
+    </div>
+    <div class="buffs" id="buffs"></div>
+    <button class="skull-btn" id="skullBtn" type="button" aria-label="Auf den Schädel klicken und Seelen ernten"></button>
+    <div class="floaters" id="floaters" aria-hidden="true"></div>
+  </section>
+
+  <!-- Mitte: Chronik und Reiter -->
+  <main class="middle">
+    <div class="ticker px-box" aria-live="polite">
+      <span class="ticker-tag">Chronik</span>
+      <span class="ticker-text" id="tickerText"></span>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Bereiche">
+      <button class="tab tab-shop" role="tab" type="button" id="tab-shop" data-tab="shop" aria-controls="panel-shop">Händler</button>
+      <button class="tab" role="tab" type="button" id="tab-realm" data-tab="realm" aria-controls="panel-realm">Reich</button>
+      <button class="tab" role="tab" type="button" id="tab-wheel" data-tab="wheel" aria-controls="panel-wheel">Schicksalsrad<span class="tab-dot" id="wheelDot" hidden></span></button>
+      <button class="tab" role="tab" type="button" id="tab-trophies" data-tab="trophies" aria-controls="panel-trophies">Trophäen</button>
+      <button class="tab" role="tab" type="button" id="tab-grimoire" data-tab="grimoire" aria-controls="panel-grimoire">Grimoire</button>
+      <button class="tab" role="tab" type="button" id="tab-ritual" data-tab="ritual" aria-controls="panel-ritual">Ritual</button>
+      <button class="tab" role="tab" type="button" id="tab-options" data-tab="options" aria-controls="panel-options">Optionen</button>
+    </nav>
+
+    <div class="panels px-box" id="panels">
+
+      <section class="panel" role="tabpanel" id="panel-realm" aria-labelledby="tab-realm">
+        <header class="panel-head">
+          <h2>Dein Reich</h2>
+          <p class="panel-sub" id="realmSub"></p>
+        </header>
+        <div class="realm" id="realm"></div>
+        <p class="empty" id="realmEmpty">Dein Reich ist noch leer. Kauf beim Händler deine erste Knochenhand, dann erscheint sie hier.</p>
+      </section>
+
+      <section class="panel" role="tabpanel" id="panel-wheel" aria-labelledby="tab-wheel" hidden>
+        <header class="panel-head">
+          <h2>Schicksalsrad</h2>
+          <p class="panel-sub">Einmal am Tag darfst du drehen. Um Mitternacht beginnt ein neuer Tag.</p>
+        </header>
+        <div class="wheel-wrap">
+          <div class="wheel-stage" id="wheelStage">
+            <canvas class="wheel-canvas" id="wheelCanvas" aria-label="Schicksalsrad" role="img"></canvas>
+          </div>
+          <div class="wheel-side">
+            <button class="px-btn btn-spin" id="spinBtn" type="button">Drehen</button>
+            <p class="wheel-status" id="wheelStatus"></p>
+            <p class="wheel-streak" id="wheelStreak"></p>
+            <div class="wheel-result px-inset" id="wheelResult" hidden></div>
+          </div>
+        </div>
+        <h3 class="sub-head">Mögliche Gewinne</h3>
+        <ul class="wheel-legend" id="wheelLegend"></ul>
+      </section>
+
+      <section class="panel" role="tabpanel" id="panel-trophies" aria-labelledby="tab-trophies" hidden>
+        <header class="panel-head">
+          <h2>Trophäen</h2>
+          <p class="panel-sub" id="trophySub"></p>
+        </header>
+        <div class="trophy-grid" id="trophyGrid"></div>
+      </section>
+
+      <section class="panel" role="tabpanel" id="panel-grimoire" aria-labelledby="tab-grimoire" hidden>
+        <header class="panel-head">
+          <h2>Grimoire</h2>
+          <p class="panel-sub">Was du bisher geerntet und gefunden hast.</p>
+        </header>
+        <dl class="stats" id="stats"></dl>
+        <h3 class="sub-head">Relikte</h3>
+        <p class="panel-sub">Relikte gibt es nur am Schicksalsrad. Sie wirken dauerhaft, auch nach dem Ritual.</p>
+        <div class="relic-grid" id="relicGrid"></div>
+      </section>
+
+      <section class="panel" role="tabpanel" id="panel-ritual" aria-labelledby="tab-ritual" hidden>
+        <header class="panel-head">
+          <h2>Ritual der Wiedergeburt</h2>
+          <p class="panel-sub">Opfere dein Reich, um als mächtigerer Nekromant zurückzukehren.</p>
+        </header>
+        <div class="ritual" id="ritual"></div>
+      </section>
+
+      <section class="panel" role="tabpanel" id="panel-options" aria-labelledby="tab-options" hidden>
+        <header class="panel-head">
+          <h2>Optionen</h2>
+          <p class="panel-sub">Der Spielstand wird automatisch in diesem Browser gespeichert.</p>
+        </header>
+        <div class="options">
+          <label class="toggle"><input type="checkbox" id="optSound"> <span>Ton (8-Bit-Klänge)</span></label>
+          <label class="toggle"><input type="checkbox" id="optParticles"> <span>Effekte (fallende Seelen, Funken)</span></label>
+          <div class="option-row">
+            <button class="px-btn" id="btnSave" type="button">Jetzt speichern</button>
+            <button class="px-btn" id="btnExport" type="button">Spielstand exportieren</button>
+            <button class="px-btn" id="btnImport" type="button">Spielstand importieren</button>
+          </div>
+          <p class="option-note" id="saveNote"></p>
+          <div class="danger-zone">
+            <h3 class="sub-head">Alles vernichten</h3>
+            <p class="panel-sub">Löscht den kompletten Spielstand, auch Trophäen, Relikte und Essenz.</p>
+            <button class="px-btn btn-danger" id="btnReset" type="button">Spielstand löschen</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Rechts: der Händler (auf schmalen Bildschirmen ein Reiter) -->
+  <aside class="shop px-box" id="panel-shop" role="tabpanel" aria-labelledby="tab-shop">
+    <header class="shop-head">
+      <h2>Händler</h2>
+      <div class="shop-controls">
+        <div class="seg" role="group" aria-label="Kaufen oder verkaufen">
+          <button class="seg-btn" type="button" data-mode="buy" aria-pressed="true">Kaufen</button>
+          <button class="seg-btn" type="button" data-mode="sell" aria-pressed="false">Verkaufen</button>
+        </div>
+        <div class="seg" role="group" aria-label="Anzahl">
+          <button class="seg-btn" type="button" data-amount="1" aria-pressed="true">1</button>
+          <button class="seg-btn" type="button" data-amount="10" aria-pressed="false">10</button>
+          <button class="seg-btn" type="button" data-amount="100" aria-pressed="false">100</button>
+        </div>
+      </div>
+    </header>
+    <div class="shop-scroll">
+      <h3 class="sub-head">Verbesserungen</h3>
+      <div class="upgrade-grid" id="upgradeGrid"></div>
+      <p class="empty small" id="upgradeEmpty">Noch nichts im Angebot. Kauf Gebäude, dann bietet dir der Händler Verbesserungen an.</p>
+      <h3 class="sub-head">Gebäude</h3>
+      <div class="building-list" id="buildingList"></div>
+    </div>
+  </aside>
+</div>
+
+<div class="wisp-layer" id="wispLayer"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tooltip px-box" id="tooltip" role="tooltip" hidden></div>
+<div class="modal-back" id="modalBack" hidden>
+  <div class="modal px-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle"></h2>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<noscript><p class="noscript">Seelenernte braucht JavaScript.</p></noscript>
+<script src="sprites.js"></script>
+<script src="data.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
