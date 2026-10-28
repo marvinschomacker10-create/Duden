@@ -1,6 +1,29 @@
+# Seelenernte
+
+Ein Klickspiel nach dem Vorbild von Cookie Clicker, im Dark-Fantasy-Stil und in Pixel-Optik wie bei alten 8-Bit-Konsolen. Statt Kekse zu backen, erntest du Seelen, indem du auf einen leuchtenden Schädel klickst.
+
+**Starten:** `index.html` per Doppelklick im Browser öffnen. Ein Server ist nicht nötig. Der Spielstand wird automatisch im Browser gespeichert.
+
+- **12 Gebäude** von der Knochenhand über Hexe, Friedhof, Gruft und Nekromantenturm bis zum Auge des Abgrunds
+- **93 Verbesserungen**: Stufen für jedes Gebäude, Klingen für stärkere Klicks, Opfergaben und Irrlicht-Köder
+- **96 Trophäen**, darunter geheime. Jede bringt +1 % Seelen pro Sekunde
+- **Irrlichter** schweben ab und zu über den Bildschirm. Wer sie fängt, bekommt einen Seelenregen, einen Blutrausch (×7) oder die Dämonenklaue (Klicks ×777)
+- **Schicksalsrad** (eigener Reiter): einmal pro Tag drehen. Zu gewinnen sind Seelen, Blutmond, Höllenfaust, Gratis-Gebäude, Irrlicht-Schwärme, dauerhafte Relikte und als Hauptgewinn der Drachenschatz. Wer an mehreren Tagen hintereinander dreht, bekommt bis zu +60 % mehr Seelen vom Rad
+- **Ritual der Wiedergeburt**: das Reich opfern und dafür Schattenessenz erhalten, die dauerhaft stärker macht
+- Chronik mit Meldungen aus dem Reich, 8-Bit-Klänge, Ernte während der Abwesenheit, Export und Import des Spielstands; läuft auch auf dem Handy
+
+Das ganze Spiel steckt in der einen Datei `index.html`, du kannst sie also einfach kopieren oder weitergeben. Nur die Pixelschriften lädt sie aus dem Internet (Google Fonts); ohne Verbindung erscheint eine Ersatzschrift. Innerhalb der Datei folgen nacheinander:
+
+```
+<style>   Pixel-Optik
+<script>  Pixelgrafiken als Zeichenraster
+<script>  Spielinhalte: Gebäude, Verbesserungen, Trophäen, Relikte, Schicksalsrad, Chronik
+<script>  Spiellogik und Oberfläche
+```
+
 # Wortwerk
 
-Wörterbuch und Echtzeit-Übersetzer für **Deutsch ↔ Englisch**, im Stil eines Nachschlagewerks wie dem Duden, mit schwarzem Interface.
+Wörterbuch und Echtzeit-Übersetzer für **Deutsch ↔ Englisch**, im Stil eines Nachschlagewerks wie dem Duden, mit schwarzem Interface. Es läuft über den Node-Server in `server.js` und `public/`.
 
 - **Wörterbuch**: Worttrennung, Aussprache (IPA), Wortart, Grammatik, Häufigkeit, Bedeutungen mit Beispielsätzen, Übersetzungen, Wendungen, Synonyme, Gegenteile und Herkunft. Tippfehler werden erkannt („Gesucht: … – angezeigt wird …“).
 - **Echtzeit-Übersetzer** (Reiter links): übersetzt beim Tippen und zeigt die Übersetzung Wort für Wort, während sie entsteht.
@@ -45,7 +68,6 @@ server.js          Node-Server: liefert die Seite aus, /api/lookup (Wörterbuch)
 public/index.html  Oberfläche
 public/styles.css  Schwarzes Design
 public/app.js      Logik im Browser (inkl. Basis-Modus)
-index.html         Die ganze Seite als einzelne Datei – per Doppelklick öffnen, läuft im Basis-Modus ohne Server
 ```
 
 ## Weitere Sprachen hinzufügen
